@@ -98,14 +98,19 @@
                              {% endif %}
                         </form>
 
-                        <div class="flex items-center gap-2">
-                             <span class="text-xs font-bold text-zinc-600 uppercase">Sort by:</span>
-                             <select class="text-sm font-bold text-zinc-300 bg-transparent border-none focus:ring-0 cursor-pointer">
-                                 <option>Best Selling</option>
-                                 <option>Newest Arrivals</option>
-                                 <option>Price: Low to High</option>
-                                 <option>Price: High to Low</option>
-                             </select>
+                        <div class="flex items-center gap-3">
+                             <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest hidden sm:inline">Sort by</span>
+                             <div class="relative group">
+                                 <select onchange="updateSort(this.value)" class="appearance-none h-11 bg-zinc-900 border border-zinc-700 rounded-xl pl-4 pr-10 text-sm font-bold text-white focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500 transition-all outline-none cursor-pointer hover:border-zinc-600 shadow-sm">
+                                     <option value="best_selling" class="bg-zinc-900 text-white font-medium" {% if request.GET.sort == 'best_selling' %}selected{% endif %}>Best Selling</option>
+                                     <option value="newest" class="bg-zinc-900 text-white font-medium" {% if request.GET.sort == 'newest' %}selected{% endif %}>Newest arrivals</option>
+                                     <option value="price_low" class="bg-zinc-900 text-white font-medium" {% if request.GET.sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                                     <option value="price_high" class="bg-zinc-900 text-white font-medium" {% if request.GET.sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                                 </select>
+                                 <div class="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none group-hover:text-cyan-400 transition-colors">
+                                     <i class="fa-solid fa-chevron-down text-xs"></i>
+                                 </div>
+                             </div>
                         </div>
                     </div>
                 </div>
@@ -212,4 +217,15 @@
         </div>
     </div>
 </div>
+{% block extra_scripts %}
+<script>
+    function updateSort(value) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('sort', value);
+        // Reset to page 1 if we're changing the sort
+        url.searchParams.set('page', '1');
+        window.location.href = url.toString();
+    }
+</script>
+{% endblock %}
 {% endblock %}
