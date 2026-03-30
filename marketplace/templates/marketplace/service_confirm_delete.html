@@ -1,0 +1,30 @@
+{% extends 'account/base.html' %}
+
+{% block title %}Delete Service - Task Wizards{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-24">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden">
+        <div class="p-12 text-center space-y-6">
+            <div class="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mx-auto border border-red-500/20">
+                <i class="fa-solid fa-trash-can text-3xl"></i>
+            </div>
+            
+            <div class="space-y-2">
+                <h1 class="text-3xl font-black text-white tracking-tight">Are you sure?</h1>
+                <p class="text-zinc-400">You are about to delete <span class="font-bold text-white">"{{ service.title }}"</span>. This action cannot be undone.</p>
+            </div>
+
+            <form method="POST" class="pt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                {% csrf_token %}
+                <a href="{% url 'marketplace:seller_service_list' %}" class="px-8 py-3 rounded-xl border border-zinc-700 text-zinc-300 font-bold hover:bg-zinc-800 hover:text-white transition-all text-center">
+                    No, Go Back
+                </a>
+                <button type="submit" class="px-8 py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-500/20">
+                    Yes, Delete it
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

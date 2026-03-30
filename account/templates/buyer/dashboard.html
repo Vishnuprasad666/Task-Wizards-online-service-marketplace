@@ -1,0 +1,239 @@
+{% extends "account/base.html" %}
+
+{% block title %}Buyer Dashboard | Task Wizards{% endblock %}
+
+{% block content %}
+<div class="bg-zinc-950 min-h-screen py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header & Stats -->
+        <div class="mb-12">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                <div>
+                    <h1 class="text-3xl font-black text-white tracking-tight">Welcome back, {{ user.username }}!</h1>
+                    <p class="text-zinc-500 mt-1">Manage your orders and track your project progress.</p>
+                </div>
+                <div class="flex gap-4">
+                    <a href="{% url 'marketplace:service_list' %}" class="px-6 py-3 bg-cyan-500 text-black font-bold rounded-xl hover:bg-cyan-400 transition-all" style="box-shadow: 0 0 20px rgba(6,182,212,0.25)">Browse Services</a>
+                    <a href="{% url 'buyer_profile_edit' %}" class="px-6 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold rounded-xl hover:bg-zinc-700 hover:text-white transition-all">Edit Profile</a>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-0.5">Active</p>
+                        <p class="text-xl font-black text-white">{{ active_tasks }}</p>
+                    </div>
+                </div>
+                <div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-white/5 text-zinc-400 border border-zinc-700 flex items-center justify-center text-sm">
+                         <i class="fa-solid fa-check-double"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-0.5">Completed</p>
+                        <p class="text-xl font-black text-white">{{ completed_tasks }}</p>
+                    </div>
+                </div>
+                <div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-white/5 text-zinc-400 border border-zinc-700 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-0.5">Spent</p>
+                        <p class="text-xl font-black text-white">₹{{ total_spent }}</p>
+                    </div>
+                </div>
+                <!-- Favourites -->
+                <a href="{% url 'marketplace:favourite_list' %}" class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 flex items-center gap-4 group hover:border-rose-500/30 transition-all">
+                    <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 flex items-center justify-center text-sm group-hover:bg-rose-500 group-hover:text-white transition-all">
+                        <i class="fa-solid fa-heart"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-0.5">Saved</p>
+                        <p class="text-sm font-bold text-zinc-300">Favourites</p>
+                    </div>
+                </a>
+                <!-- Inbox -->
+                <a href="{% url 'marketplace:inbox' %}" class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 flex items-center gap-4 group hover:border-cyan-500/30 transition-all">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center text-sm group-hover:bg-cyan-500 group-hover:text-black transition-all">
+                        <i class="fa-solid fa-envelope"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-0.5">Chat</p>
+                        <p class="text-sm font-bold text-zinc-300">Inbox</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Active Orders (Left) -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-3">Active Orders</h2>
+                    <span class="px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{{ active_tasks }} total</span>
+                </div>
+                
+                {% if orders %}
+                    {% for order in orders %}
+                        {% if order.status in 'Paid,In Progress,Delivered,Revision Requested' %}
+                        <div class="bg-zinc-900 rounded-[2rem] border border-zinc-800 overflow-hidden hover:border-zinc-600 transition-all">
+                            <div class="p-6 flex flex-col md:flex-row gap-6">
+                                <div class="w-full md:w-40 aspect-[4/3] rounded-2xl overflow-hidden flex-shrink-0 bg-zinc-800">
+                                    <img src="{{ order.service.image.url }}" class="w-full h-full object-cover opacity-80">
+                                </div>
+                                <div class="flex-grow space-y-4">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <a href="{% url 'marketplace:order_detail' order.pk %}" class="hover:text-cyan-400 transition-colors">
+                                                <h3 class="text-lg font-bold text-zinc-200 leading-tight mb-1">{{ order.service.title }}</h3>
+                                            </a>
+                                            <div class="flex items-center gap-3 text-[10px] font-bold text-zinc-600 uppercase tracking-tight">
+                                                <span class="flex items-center gap-1"><i class="fa-solid fa-user-tie text-[8px]"></i> {{ order.service.seller.username }}</span>
+                                                <span class="flex items-center gap-1"><i class="fa-solid fa-calendar text-[8px]"></i> {{ order.created_at|date:"M d" }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-lg font-black text-white">₹{{ order.amount }}</p>
+                                            <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest 
+                                                {% if order.status == 'Paid' %}bg-blue-500/10 text-blue-400 border border-blue-500/20
+                                                {% elif order.status == 'Delivered' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+                                                {% elif order.status == 'Revision Requested' %}bg-rose-500/10 text-rose-400 border border-rose-500/20
+                                                {% else %}bg-zinc-800 text-zinc-500 border border-zinc-700{% endif %}">
+                                                {{ order.status }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Progress Bar -->
+                                    <div class="space-y-1.5">
+                                        <div class="flex justify-between items-end">
+                                            <span class="text-[9px] font-black text-zinc-600 uppercase tracking-[0.2em]">Live Tracking</span>
+                                            <span class="text-[10px] font-black text-zinc-400">{{ order.get_progress_percentage }}%</span>
+                                        </div>
+                                        <div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                                            <div class="h-full bg-cyan-500 transition-all duration-1000" style="--w: {{ order.get_progress_percentage }}%; width: var(--w);"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div class="flex items-center justify-between pt-2">
+                                        <a href="{% url 'marketplace:chat_detail' order.service.seller.id %}" class="text-[10px] font-black uppercase tracking-widest text-cyan-400 hover:text-cyan-300 flex items-center gap-2">
+                                            <i class="fa-solid fa-comment-dots"></i> Message Seller
+                                        </a>
+                                        {% if order.status == 'Delivered' %}
+                                            <div class="flex items-center gap-3">
+                                                <a href="{{ order.delivery_file.url }}" class="text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:text-emerald-300 flex items-center gap-2">
+                                                    <i class="fa-solid fa-file-arrow-down"></i> Asset
+                                                </a>
+                                                <button onclick="document.getElementById('complete-order-{{ order.id }}').classList.remove('hidden')" class="px-4 py-2 bg-cyan-500 text-black font-bold rounded-lg text-[10px] uppercase tracking-widest hover:bg-cyan-400 transition-all">Accept Work</button>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Modal for Review -->
+                                    <div id="complete-order-{{ order.id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+                                        <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8 max-w-lg w-full shadow-2xl space-y-6">
+                                            <h3 class="text-2xl font-black text-white">Complete &amp; Review</h3>
+                                            {% if order.delivery_file %}
+                                            <div class="p-5 rounded-2xl bg-cyan-500/10 border border-cyan-500/20">
+                                                <p class="text-[10px] font-black uppercase text-cyan-400 mb-2">Final Delivery</p>
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs text-zinc-300 font-bold truncate max-w-[200px]">{{ order.delivery_file.name }}</span>
+                                                    <a href="{{ order.delivery_file.url }}" download class="px-4 py-2 bg-cyan-500 text-black text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-cyan-400 transition-all">Download</a>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            <form action="{% url 'marketplace:order_complete' order.pk %}" method="POST" class="space-y-6">
+                                                {% csrf_token %}
+                                                <div class="space-y-4">
+                                                    <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Rating</label>
+                                                    <div class="flex gap-4">
+                                                        {% for i in "12345" %}
+                                                        <label class="cursor-pointer">
+                                                            <input type="radio" name="rating" value="{{ i }}" class="sr-only peer" required>
+                                                            <div class="w-10 h-10 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-500 peer-checked:bg-amber-500/20 peer-checked:text-amber-400 peer-checked:border-amber-500/30 hover:bg-zinc-700 transition-all font-bold">{{ i }}</div>
+                                                        </label>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                                <div class="space-y-2">
+                                                    <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Your Experience</label>
+                                                    <textarea name="comment" rows="3" class="w-full p-4 bg-zinc-800 border border-zinc-700 rounded-2xl text-sm text-white focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 outline-none placeholder-zinc-600" placeholder="Feedback for the seller..." required></textarea>
+                                                </div>
+                                                <div class="flex gap-4">
+                                                    <button type="button" onclick="document.getElementById('complete-order-{{ order.id }}').classList.add('hidden')" class="flex-grow py-4 text-sm font-bold text-zinc-500 hover:text-zinc-300">Cancel</button>
+                                                    <button type="submit" class="flex-grow py-4 px-8 bg-cyan-500 text-black font-black rounded-2xl hover:bg-cyan-400 transition-all">Approve &amp; Close</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="py-20 bg-zinc-900 rounded-[2rem] border-2 border-dashed border-zinc-800 flex flex-col items-center justify-center text-center px-6">
+                        <div class="w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-700 mb-6">
+                            <i class="fa-solid fa-mug-hot text-2xl"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-white">No active orders</h4>
+                        <p class="text-zinc-500 text-sm mt-1 max-w-xs font-medium">Ready to start something new?</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Profile & Sidebar (Right) -->
+            <div class="space-y-8">
+                <!-- Profile Card -->
+                <div class="bg-zinc-900 rounded-[2rem] border border-zinc-800 p-8 text-center space-y-6">
+                    <div class="relative inline-block">
+                        <img src="{{ user.buyer_profile.photo.url }}" class="w-24 h-24 rounded-full border-4 border-zinc-800 shadow-sm mx-auto object-cover">
+                        <div class="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-zinc-900"></div>
+                    </div>
+                    <div class="mb-4">
+                        <h3 class="text-xl font-bold text-white">{{ user.get_full_name|default:user.username }}</h3>
+                        <p class="text-xs font-semibold text-zinc-500 uppercase tracking-widest mt-1">Project Manager</p>
+                    </div>
+                    
+                    <a href="{% url 'buyer_profile_edit' %}" class="w-full py-4 text-[10px] font-black uppercase tracking-widest text-zinc-400 border border-zinc-700 rounded-2xl hover:bg-zinc-800 hover:text-white transition-all block">Update Profile</a>
+                </div>
+
+                <!-- History Table Card -->
+                <div class="bg-zinc-900 rounded-[2rem] border border-zinc-800 overflow-hidden">
+                    <div class="p-6 border-b border-zinc-800 flex justify-between items-center">
+                        <h4 class="font-bold text-white">History</h4>
+                        <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Recent</span>
+                    </div>
+                    <div class="divide-y divide-zinc-800">
+                        {% for order in orders %}
+                            {% if order.status == 'Completed' %}
+                            <a href="{% url 'marketplace:order_detail' order.pk %}" class="p-4 flex items-center gap-4 hover:bg-zinc-800/50 transition-colors">
+                                <div class="w-10 h-10 rounded-xl bg-zinc-800 flex-shrink-0 overflow-hidden border border-zinc-700">
+                                     <img src="{{ order.service.image.url }}" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-grow min-w-0">
+                                    <h5 class="text-sm font-bold text-zinc-300 truncate">{{ order.service.title }}</h5>
+                                    <p class="text-[10px] font-medium text-zinc-600 uppercase tracking-tight">{{ order.created_at|date:"M d" }} • ₹{{ order.amount }}</p>
+                                </div>
+                                <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
+                            </a>
+                            {% endif %}
+                        {% empty %}
+                            <div class="p-12 text-center text-zinc-700">
+                                <p class="text-[10px] font-black uppercase tracking-widest italic">Empty</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

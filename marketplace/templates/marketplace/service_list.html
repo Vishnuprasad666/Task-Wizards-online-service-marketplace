@@ -1,0 +1,215 @@
+{% extends 'account/base.html' %}
+
+{% block title %}Browse Services - Task Wizards{% endblock %}
+
+{% block content %}
+<div class="bg-zinc-950 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Sidebar Filters -->
+            <aside class="w-full lg:w-64 flex-shrink-0 space-y-8">
+                <!-- Search (Mobile) -->
+                <div class="lg:hidden mb-6">
+                    <form action="" method="GET" class="relative group">
+                        <input type="text" name="search" value="{{ request.GET.search|default:'' }}" 
+                               placeholder="Search services..." 
+                               class="w-full h-12 bg-zinc-900 border border-zinc-700 rounded-xl pl-12 pr-4 text-sm text-white focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500 transition-all outline-none placeholder-zinc-600">
+                        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-cyan-400 transition-colors">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Categories -->
+                <div class="space-y-4">
+                    <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest px-2">Categories</h3>
+                    <div class="space-y-1">
+                        <a href="?{% if request.GET.search %}search={{ request.GET.search }}{% endif %}" 
+                           class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all {% if not request.GET.category %}bg-cyan-500/10 text-cyan-400 border border-cyan-500/20{% else %}text-zinc-400 hover:bg-zinc-800 hover:text-white{% endif %}">
+                            <span>All Categories</span>
+                            <i class="fa-solid fa-chevron-right text-[10px] opacity-50"></i>
+                        </a>
+                        {% for category in categories %}
+                        <a href="?category={{ category.id }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" 
+                           class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all {% if request.GET.category == category.id|stringformat:'i' %}bg-cyan-500/10 text-cyan-400 border border-cyan-500/20{% else %}text-zinc-400 hover:bg-zinc-800 hover:text-white{% endif %}">
+                            <span>{{ category.name }}</span>
+                            <i class="fa-solid fa-chevron-right text-[10px] opacity-50"></i>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Budget Filter -->
+                <div class="space-y-4 pt-6 border-t border-zinc-800">
+                    <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest px-2">Budget</h3>
+                    <div class="grid grid-cols-2 gap-4 px-2">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-zinc-600 uppercase">Min</label>
+                            <input type="number" placeholder="₹" class="w-full h-10 px-3 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-white focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 outline-none placeholder-zinc-700">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-zinc-600 uppercase">Max</label>
+                            <input type="number" placeholder="₹" class="w-full h-10 px-3 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-white focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 outline-none placeholder-zinc-700">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Time -->
+                <div class="space-y-4 pt-6 border-t border-zinc-800">
+                    <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest px-2">Delivery Time</h3>
+                    <div class="space-y-2 px-2">
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" class="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-cyan-500 focus:ring-cyan-500">
+                            <span class="text-sm text-zinc-400 group-hover:text-white transition-colors">Express 24H</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" class="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-cyan-500 focus:ring-cyan-500">
+                            <span class="text-sm text-zinc-400 group-hover:text-white transition-colors">Up to 3 days</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" class="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-cyan-500 focus:ring-cyan-500">
+                            <span class="text-sm text-zinc-400 group-hover:text-white transition-colors">Up to 7 days</span>
+                        </label>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Listing Area -->
+            <div class="flex-grow">
+                <!-- Header & Search (Desktop) -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <div>
+                        <h1 class="text-3xl font-bold text-white tracking-tight">
+                            {% if request.GET.search %}Results for "{{ request.GET.search }}"{% else %}Service Results{% endif %}
+                        </h1>
+                        <p class="mt-1 text-zinc-500 text-sm">{{ paginator.count }} services available</p>
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        <form action="" method="GET" class="hidden lg:block relative group w-64">
+                             <input type="text" name="search" value="{{ request.GET.search|default:'' }}" 
+                               placeholder="Search..." 
+                               class="w-full h-11 bg-zinc-900 border border-zinc-700 rounded-xl pl-10 pr-4 text-sm text-white focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500 transition-all outline-none placeholder-zinc-600">
+                             <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-cyan-400 transition-colors">
+                                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                             </div>
+                             {% if request.GET.category %}
+                                <input type="hidden" name="category" value="{{ request.GET.category }}">
+                             {% endif %}
+                        </form>
+
+                        <div class="flex items-center gap-2">
+                             <span class="text-xs font-bold text-zinc-600 uppercase">Sort by:</span>
+                             <select class="text-sm font-bold text-zinc-300 bg-transparent border-none focus:ring-0 cursor-pointer">
+                                 <option>Best Selling</option>
+                                 <option>Newest Arrivals</option>
+                                 <option>Price: Low to High</option>
+                                 <option>Price: High to Low</option>
+                             </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services Grid -->
+                {% if services %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for service in services %}
+                    <div class="group bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden hover:border-zinc-600 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col h-full relative">
+                        <!-- Favourite Toggle -->
+                        {% if user.is_authenticated and user.role == 'Buyer' %}
+                        <form action="{% url 'marketplace:toggle_favourite' service.pk %}" method="POST" class="absolute top-4 right-4 z-20">
+                            {% csrf_token %}
+                            <button type="submit" class="w-10 h-10 rounded-xl bg-zinc-900/90 backdrop-blur-md shadow-sm flex items-center justify-center text-zinc-500 hover:text-rose-500 transition-all group/heart border border-zinc-700">
+                                <i class="{% if service.pk in user_favourite_ids %}fa-solid text-rose-500{% else %}fa-regular{% endif %} fa-heart transition-transform group-hover/heart:scale-125"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <!-- Image Container -->
+                        <div class="aspect-[4/3] overflow-hidden relative">
+                            <img src="{{ service.image.url }}" alt="{{ service.title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80">
+                            <div class="absolute top-4 left-4">
+                                <span class="px-2 py-1 rounded bg-black/80 backdrop-blur text-[10px] font-black uppercase tracking-wider text-cyan-400 border border-cyan-500/30">Pro</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Content -->
+                        <div class="p-5 flex flex-col flex-grow">
+                            <!-- Seller Info -->
+                            <div class="flex items-center gap-2 mb-3">
+                                <img src="{{ service.seller.seller_profile.photo.url }}" class="w-6 h-6 rounded-full border border-zinc-700">
+                                <span class="text-xs font-bold text-zinc-300">{{ service.seller.username }}</span>
+                                <div class="ml-auto flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-amber-400 text-[10px]"></i>
+                                    <span class="text-[10px] font-bold text-white">{{ service.get_average_rating|floatformat:1 }}</span>
+                                    <span class="text-[10px] text-zinc-500">({{ service.get_review_count }})</span>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-sm font-bold text-zinc-300 line-clamp-2 mb-4 group-hover:text-white transition-colors flex-grow">
+                                <a href="{% url 'marketplace:service_detail' service.pk %}">{{ service.title }}</a>
+                            </h3>
+                            
+                            <div class="pt-4 border-t border-zinc-800 flex justify-between items-center mt-auto">
+                                <button class="w-8 h-8 rounded-full border border-zinc-700 flex items-center justify-center text-zinc-600 hover:text-rose-500 hover:border-rose-500/30 transition-all">
+                                    <i class="fa-solid fa-heart text-xs"></i>
+                                </button>
+                                <div class="text-right">
+                                    <p class="text-[9px] font-black text-zinc-600 uppercase tracking-tighter">Starting at</p>
+                                    <p class="text-xl font-black text-white tracking-tight">₹{{ service.price }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <div class="mt-16 flex justify-center">
+                    <nav class="flex items-center gap-2">
+                        {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" 
+                           class="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </a>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <span class="w-10 h-10 flex items-center justify-center rounded-xl bg-cyan-500 text-black font-bold" style="box-shadow: 0 0 15px rgba(6,182,212,0.4)">{{ num }}</span>
+                            {% else %}
+                            <a href="?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" 
+                               class="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-400 font-bold hover:text-cyan-400 hover:border-cyan-500/50 transition-all">
+                                {{ num }}
+                            </a>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" 
+                           class="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </a>
+                        {% endif %}
+                    </nav>
+                </div>
+                {% endif %}
+
+                {% else %}
+                <div class="py-24 flex flex-col items-center justify-center bg-zinc-900 rounded-3xl border border-zinc-800 text-center px-6">
+                    <div class="w-20 h-20 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-600 mb-6">
+                        <i class="fa-solid fa-cloud-moon text-4xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">No wizards found here...</h3>
+                    <p class="text-zinc-500 max-w-sm mx-auto">Try adjusting your filters or search for something else.</p>
+                    <a href="{% url 'marketplace:service_list' %}" class="mt-8 px-8 py-3 bg-cyan-500 text-black font-bold rounded-xl hover:bg-cyan-400 transition-all inline-block" style="box-shadow: 0 0 20px rgba(6,182,212,0.3)">
+                        Reset Filters
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

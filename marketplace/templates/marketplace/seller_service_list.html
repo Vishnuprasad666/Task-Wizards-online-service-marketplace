@@ -1,0 +1,96 @@
+{% extends 'account/base.html' %}
+
+{% block title %}Manage Services - Task Wizards{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+        <div>
+            <h1 class="text-4xl font-black text-white tracking-tight">Manage Services</h1>
+            <p class="mt-2 text-zinc-500">You have listed {{ services.count }} service{{ services.count|pluralize }}</p>
+        </div>
+        
+        <a href="{% url 'marketplace:service_create' %}" class="flex items-center justify-center gap-2 px-8 py-3.5 text-black bg-cyan-500 hover:bg-cyan-400 transition-colors font-bold rounded-xl text-sm max-w-xs" style="box-shadow: 0 0 20px rgba(6,182,212,0.3)">
+            <i class="fa-solid fa-plus"></i> Add New Service
+        </a>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 border-l-4 border-l-cyan-500">
+            <h4 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Active Gigs</h4>
+            <p class="text-3xl font-black text-white">{{ services.count }}</p>
+        </div>
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 border-l-4 border-l-zinc-600">
+            <h4 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Total Views</h4>
+            <p class="text-3xl font-black text-white">0</p>
+            <span class="text-[10px] text-zinc-600 font-medium">Coming soon</span>
+        </div>
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 border-l-4 border-l-zinc-600">
+            <h4 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Total Earnings</h4>
+            <p class="text-3xl font-black text-white">₹0</p>
+            <span class="text-[10px] text-zinc-600 font-medium">Coming soon</span>
+        </div>
+    </div>
+
+    <!-- Services List -->
+    {% if services %}
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-zinc-800 border-b border-zinc-700">
+                    <tr>
+                        <th class="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider">Service</th>
+                        <th class="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider">Category</th>
+                        <th class="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider">Price</th>
+                        <th class="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider">Created</th>
+                        <th class="px-6 py-4 text-xs font-bold text-zinc-500 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-800">
+                    {% for service in services %}
+                    <tr class="hover:bg-zinc-800/50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-4">
+                                <img src="{{ service.image.url }}" class="w-12 h-12 rounded-lg object-cover border border-zinc-700">
+                                <span class="font-bold text-zinc-200 truncate max-w-[200px]">{{ service.title }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 rounded-md bg-zinc-800 text-zinc-400 text-[10px] font-bold uppercase border border-zinc-700">
+                                {{ service.category.name|default:"General" }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 font-black text-cyan-400">₹{{ service.price }}</td>
+                        <td class="px-6 py-4 text-sm text-zinc-500">{{ service.created_at|date:"M d, Y" }}</td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{% url 'marketplace:service_update' service.pk %}" class="w-10 h-10 flex border border-zinc-700 items-center justify-center rounded-xl text-zinc-400 hover:border-cyan-500/50 hover:text-cyan-400 transition-all">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                                <a href="{% url 'marketplace:service_delete' service.pk %}" class="w-10 h-10 flex border border-zinc-700 items-center justify-center rounded-xl text-zinc-400 hover:border-red-500/50 hover:text-red-500 transition-all">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="py-24 flex flex-col items-center justify-center bg-zinc-900 border border-zinc-800 rounded-2xl text-center px-6">
+        <div class="w-20 h-20 bg-cyan-500/10 rounded-full flex items-center justify-center text-cyan-500/50 mb-6 border border-cyan-500/20">
+            <i class="fa-solid fa-rocket text-4xl"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-white mb-2">Success starts here</h3>
+        <p class="text-zinc-500 max-w-sm mx-auto">You haven't listed any services yet. Create your first service to start earning!</p>
+        <a href="{% url 'marketplace:service_create' %}" class="mt-8 px-8 py-3 bg-cyan-500 text-black font-bold rounded-xl hover:bg-cyan-400 transition-all" style="box-shadow: 0 0 20px rgba(6,182,212,0.3)">
+            Create Your First Service
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

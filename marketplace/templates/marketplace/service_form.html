@@ -1,0 +1,127 @@
+{% extends 'account/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Service{% else %}New Service{% endif %} - Task Wizards{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-8 text-sm font-medium text-zinc-600">
+        <ol class="flex items-center gap-2">
+            <li><a href="{% url 'marketplace:seller_service_list' %}" class="hover:text-cyan-400 transition-colors">Manage Services</a></li>
+            <li><i class="fa-solid fa-chevron-right text-[10px]"></i></li>
+            <li class="text-zinc-300">{% if form.instance.pk %}Edit Service{% else %}Create Service{% endif %}</li>
+        </ol>
+    </nav>
+
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
+        <div class="p-8 border-b border-zinc-800 bg-zinc-800/50">
+            <h1 class="text-3xl font-black text-white">Service Details</h1>
+            <p class="text-zinc-500 mt-2">Fill in the details below to list your service on our marketplace.</p>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" class="p-8 space-y-8">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm space-y-1">
+                <p class="font-bold flex items-center gap-2"><i class="fa-solid fa-circle-exclamation"></i> Please fix the errors below:</p>
+                <ul class="list-disc list-inside ml-2">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ field.label }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Title -->
+                <div class="md:col-span-2 space-y-2">
+                    <label class="text-sm font-bold text-zinc-300 flex items-center gap-2">
+                        <i class="fa-solid fa-heading text-cyan-400"></i> Service Title
+                    </label>
+                    {{ form.title }}
+                    <p class="text-[11px] text-zinc-600 font-medium">Create a clear, professional title for your service.</p>
+                </div>
+
+                <!-- Category -->
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-zinc-300 flex items-center gap-2">
+                        <i class="fa-solid fa-tag text-cyan-400"></i> Category
+                    </label>
+                    {{ form.category }}
+                </div>
+
+                <!-- Price -->
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-zinc-300 flex items-center gap-2">
+                        <i class="fa-solid fa-indian-rupee-sign text-cyan-400"></i> Price (INR)
+                    </label>
+                    {{ form.price }}
+                </div>
+
+                <!-- Delivery Time -->
+                <div class="space-y-2 md:col-span-2">
+                    <label class="text-sm font-bold text-zinc-300 flex items-center gap-2">
+                        <i class="fa-solid fa-clock text-cyan-400"></i> Delivery Time (Days)
+                    </label>
+                    {{ form.delivery_time }}
+                </div>
+
+                <!-- Description -->
+                <div class="md:col-span-2 space-y-2">
+                    <label class="text-sm font-bold text-zinc-300 flex items-center gap-2">
+                        <i class="fa-solid fa-align-left text-cyan-400"></i> Description
+                    </label>
+                    {{ form.description }}
+                </div>
+
+                <!-- Image -->
+                <div class="md:col-span-2 space-y-2">
+                    <label class="text-sm font-bold text-zinc-300 flex items-center gap-2">
+                        <i class="fa-solid fa-image text-cyan-400"></i> Service Banner
+                    </label>
+                    <div class="p-6 border-2 border-dashed border-zinc-700 rounded-2xl bg-zinc-800/30 hover:border-cyan-500/50 transition-colors flex flex-col items-center justify-center text-center">
+                        <div class="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-500 mb-2">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </div>
+                        {{ form.image }}
+                        {% if form.instance.image %}
+                        <p class="mt-2 text-xs text-zinc-500">Current: {{ form.instance.image.name|truncatechars:30 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-zinc-800 flex items-center justify-between gap-4">
+                <a href="{% url 'marketplace:seller_service_list' %}" class="text-sm font-bold text-zinc-500 hover:text-zinc-300 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="text-black bg-cyan-500 hover:bg-cyan-400 transition duration-300 font-bold rounded-xl text-sm px-8 py-3.5 text-center min-w-[200px]" style="box-shadow: 0 0 20px rgba(6,182,212,0.3)">
+                    {% if form.instance.pk %}Update Service{% else %}Publish Service{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    input[type="text"], input[type="number"], select, textarea {
+        background-color: rgb(39 39 42) !important;
+        border: 1px solid rgb(63 63 70) !important;
+        color: white !important;
+        border-radius: 0.75rem !important;
+        padding: 0.75rem !important;
+        width: 100% !important;
+        font-size: 0.875rem !important;
+        transition: 0.2s !important;
+        outline: none !important;
+    }
+    input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+        border-color: rgb(6 182 212) !important;
+        box-shadow: 0 0 0 2px rgba(6,182,212,0.2) !important;
+    }
+    select option { background-color: #27272a; }
+</style>
+{% endblock %}
