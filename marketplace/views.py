@@ -34,6 +34,14 @@ class ServiceListView(ListView):
             queryset = queryset.filter(category_id=category_id)
         if search_query:
             queryset = queryset.filter(Q(title__icontains=search_query) | Q(description__icontains=search_query))
+            
+        min_price = self.request.GET.get("min_price")
+        max_price = self.request.GET.get("max_price")
+        
+        if min_price and min_price.isdigit():
+            queryset = queryset.filter(price__gte=int(min_price))
+        if max_price and max_price.isdigit():
+            queryset = queryset.filter(price__lte=int(max_price))
         
         sort_by = self.request.GET.get("sort")
         if sort_by == "price_low":

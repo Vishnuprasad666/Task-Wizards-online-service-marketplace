@@ -1,1 +1,18 @@
+# Django
+*.log
+*.pot
+*.pyc
+pycache/
+
+# Environment variables
 .env
+
+# SQLite (if used)
+# db.sqlite3
+
+# Virtual environment
+# venv/
+# .env/
+
+# OS files
+# .DS_Store

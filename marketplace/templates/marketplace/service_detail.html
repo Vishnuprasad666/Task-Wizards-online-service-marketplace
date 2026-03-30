@@ -176,8 +176,8 @@
                                         <textarea name="buyer_note" rows="3" class="w-full p-4 bg-zinc-800 border border-zinc-700 rounded-2xl text-sm text-white focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 outline-none placeholder-zinc-600" placeholder="Tell us what you need..." required></textarea>
                                     </div>
                                     <div class="flex gap-4">
-                                        <button type="submit" class="flex-grow h-16 rounded-2xl bg-cyan-500 text-black font-black uppercase tracking-widest hover:bg-cyan-400 transition-all flex items-center justify-center gap-3" style="box-shadow: 0 0 25px rgba(6,182,212,0.35)">
-                                            Continue (₹{{ service.price }}) <i class="fa-solid fa-arrow-right"></i>
+                                        <button type="submit" class="flex-grow h-16 rounded-2xl bg-cyan-500 text-black font-black uppercase tracking-widest hover:bg-cyan-400 transition-all flex items-center justify-center" style="box-shadow: 0 0 25px rgba(6,182,212,0.35)">
+                                            Continue <br>(₹{{ service.price }})
                                         </button>
                                         <button type="submit" form="favourite-form" class="w-16 h-16 rounded-2xl bg-zinc-800 border border-zinc-700 text-zinc-500 hover:text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all flex items-center justify-center group/heart">
                                             <i class="{% if is_favourite %}fa-solid text-rose-500{% else %}fa-regular{% endif %} fa-heart text-xl transition-transform group-hover/heart:scale-110"></i>
