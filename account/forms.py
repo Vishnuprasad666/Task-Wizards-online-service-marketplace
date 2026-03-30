@@ -1,0 +1,110 @@
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from account.models import User, BuyerProfile, SellerProfile
+
+
+# -------------------------
+# USER REGISTRATION FORM
+# -------------------------
+
+class UserForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = [
+            "first_name",
+            "last_name",
+            "email",
+            "phone",
+            "username",
+            "role",
+        ]
+        
+        widgets = {
+
+            "first_name": forms.TextInput(attrs={"placeholder": "Enter First Name","class": "form-control"}),
+            "last_name": forms.TextInput(attrs={"placeholder": "Enter Last Name","class": "form-control"}),
+            "email": forms.EmailInput(attrs={"placeholder": "Enter Email","class": "form-control"}),
+            "phone": forms.TextInput(attrs={"placeholder": "Enter Phone Number","class": "form-control"}),
+            "username": forms.TextInput(attrs={"placeholder": "Enter Username","class": "form-control"}),
+            "role": forms.Select(attrs={"class": "form-control"}),
+            
+        }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["password1"].widget.attrs.update({"class": "form-control","placeholder": "Enter Password"})
+        self.fields["password2"].widget.attrs.update({"class": "form-control","placeholder": "Confirm Password"})
+        
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("Email already exists")
+        return email
+    
+class OTPForm(forms.Form):
+
+    otp = forms.CharField(
+        max_length=10,
+        widget=forms.TextInput(attrs={"class": "form-control","placeholder": "Enter OTP"}))
+
+# -------------------------
+# LOGIN FORM
+# -------------------------
+
+class LoginForm(forms.Form):
+    username = forms.CharField(max_length=100,widget=forms.TextInput(attrs={"class": "form-control","placeholder": "Enter Username or Email"}))
+    password = forms.CharField(max_length=100,widget=forms.PasswordInput(attrs={"class": "form-control","placeholder": "Enter Password"}))
+
+
+# -------------------------
+# BUYER PROFILE FORM
+# -------------------------
+
+class BuyerProfileForm(forms.ModelForm):
+    photo = forms.ImageField(widget=forms.FileInput(attrs={"class": "form-control"}))
+    class Meta:
+        model = BuyerProfile
+        exclude = ["owner"]
+        widgets = {
+            "bio": forms.TextInput(attrs={"class": "form-control","placeholder": "Write something about yourself"}),
+            "address": forms.Textarea(attrs={"class": "form-control","placeholder": "Enter your address"}),
+        }
+
+
+# -------------------------
+# SELLER PROFILE FORM
+# -------------------------
+
+class SellerProfileForm(forms.ModelForm):
+    photo = forms.ImageField(widget=forms.FileInput(attrs={"class": "form-control"}))
+    class Meta:
+        model = SellerProfile
+        exclude = ["owner", "rating", "orders_completed"]
+
+        widgets = {
+
+            "bio": forms.TextInput(attrs={"class": "form-control","placeholder": "Write about yourself"}),
+            "expertise": forms.TextInput(attrs={"class": "form-control","placeholder": "Your skills (e.g. Web Development)"}),
+            "portfolio_link": forms.URLInput(attrs={"class": "form-control","placeholder": "Portfolio / Website link"}),
+
+        }
+
+# -------------------------
+# PASSWORD RESET FORMS
+# -------------------------
+
+class ForgotPasswordForm(forms.Form):
+    email = forms.EmailField(widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "Enter your email"}))
+
+class ResetPasswordForm(forms.Form):
+    otp = forms.CharField(max_length=10, widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Enter OTP"}))
+    new_password = forms.CharField(widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Enter new password"}))
+    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Confirm new password"}))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get("new_password")
+        confirm_password = cleaned_data.get("confirm_password")
+        if new_password != confirm_password:
+            raise forms.ValidationError("Passwords do not match")
+        return cleaned_data

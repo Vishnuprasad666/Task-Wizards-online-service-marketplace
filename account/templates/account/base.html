@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Task Wizards{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50:  '#ecfeff',
+                            100: '#cffafe',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            900: '#164e63',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            body {
+                font-family: 'Inter', sans-serif;
+            }
+            .no-scrollbar::-webkit-scrollbar { display: none; }
+            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+            .cyan-glow {
+                box-shadow: 0 0 30px rgba(6,182,212,0.25);
+            }
+            .cyan-glow-sm {
+                box-shadow: 0 0 14px rgba(6,182,212,0.18);
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-zinc-950 text-white antialiased flex flex-col font-sans">
+    
+    <!-- Toast Messages -->
+    {% if messages %}
+    <div class="fixed top-4 right-4 z-[100] flex flex-col gap-2">
+        {% for message in messages %}
+        <div class="p-4 rounded-xl shadow-lg flex items-center gap-3 transition-all duration-300 transform translate-x-0 opacity-100 ease-in-out border
+            {% if message.tags == 'error' %}bg-zinc-900/95 backdrop-blur border-red-500/50 text-red-400
+            {% elif message.tags == 'success' %}bg-zinc-900/95 backdrop-blur border-cyan-500/50 text-cyan-300
+            {% else %}bg-zinc-900/95 backdrop-blur border-zinc-600 text-zinc-300{% endif %}"
+            id="toast-{{ forloop.counter }}">
+            <div class="flex-shrink-0">
+                {% if message.tags == 'error' %}
+                    <div class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-red-400">
+                        <i class="fa-solid fa-exclamation"></i>
+                    </div>
+                {% elif message.tags == 'success' %}
+                    <div class="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                {% else %}
+                    <div class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-400">
+                        <i class="fa-solid fa-info"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="text-sm font-medium">{{ message }}</div>
+            <button onclick="dismissToast('toast-{{ forloop.counter }}')" class="ml-auto text-zinc-500 hover:text-zinc-300 transition-colors">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Global Navbar -->
+    <nav class="bg-black/95 backdrop-blur-md border-b border-zinc-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <!-- Logo & Main Nav -->
+                <div class="flex items-center gap-8">
+                    <a href="{% url 'home' %}" class="flex items-center gap-2 group">
+                        <div class="w-10 h-10 rounded-xl bg-cyan-500 text-black flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform cyan-glow-sm">
+                            <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                        </div>
+                        <span class="text-xl font-bold text-white tracking-tight">Task<span class="text-cyan-400">Wizards</span></span>
+                    </a>
+                    
+                    <div class="hidden lg:flex items-center gap-6">
+                        <a href="{% url 'marketplace:service_list' %}" class="text-sm font-semibold text-zinc-400 hover:text-cyan-400 transition-colors">Marketplace</a>
+                        <a href="{% url 'how_it_works' %}" class="text-sm font-semibold text-zinc-400 hover:text-cyan-400 transition-colors">How it works</a>
+                        <a href="{% url 'about' %}" class="text-sm font-semibold text-zinc-400 hover:text-cyan-400 transition-colors">About</a>
+                    </div>
+                </div>
+
+                <!-- Right Side Actions -->
+                <div class="flex items-center gap-4">
+                    
+                    {% if user.is_authenticated %}
+                        <div class="h-6 w-px bg-zinc-700 mx-2 hidden sm:block"></div>
+                        <a href="{% if user.role == 'Buyer' %}{% url 'buyer_dashboard' %}{% else %}{% url 'seller_dashboard' %}{% endif %}" class="text-sm font-bold text-zinc-300 hover:text-cyan-400 transition-colors">Dashboard</a>
+                        <a href="{% url 'logout' %}" class="px-5 py-2.5 rounded-xl bg-zinc-800 text-zinc-300 text-sm font-bold hover:bg-zinc-700 transition-all border border-zinc-700">Logout</a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="text-sm font-bold text-zinc-300 hover:text-cyan-400 transition-colors">Sign In</a>
+                        <a href="{% url 'register' %}" class="px-5 py-2.5 rounded-xl bg-cyan-500 text-black text-sm font-bold hover:bg-cyan-400 transition-all shadow-lg cyan-glow-sm">Join Now</a>
+                    {% endif %}
+                    
+                    <!-- Mobile Menu Button -->
+                    <button class="lg:hidden p-2 text-zinc-400 hover:text-white transition-colors" id="mobile-menu-button">
+                        <i class="fa-solid fa-bars-staggered text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div class="lg:hidden hidden border-t border-zinc-800 bg-black" id="mobile-menu">
+            <div class="px-4 py-6 space-y-4">
+                <a href="{% url 'marketplace:service_list' %}" class="block text-base font-bold text-zinc-300 hover:text-cyan-400 transition-colors">Marketplace</a>
+                <a href="{% url 'how_it_works' %}" class="block text-base font-bold text-zinc-300 hover:text-cyan-400 transition-colors">How it works</a>
+                <a href="{% url 'about' %}" class="block text-base font-bold text-zinc-300 hover:text-cyan-400 transition-colors">About</a>
+                {% if user.is_authenticated %}
+                <a href="{% if user.role == 'Buyer' %}{% url 'buyer_dashboard' %}{% else %}{% url 'seller_dashboard' %}{% endif %}" class="block text-base font-bold text-zinc-300 hover:text-cyan-400 transition-colors">Dashboard</a>
+                <a href="{% url 'logout' %}" class="block text-base font-bold text-zinc-300 hover:text-cyan-400 transition-colors">Logout</a>
+                {% else %}
+                <a href="{% url 'login' %}" class="block text-base font-bold text-zinc-300 hover:text-cyan-400 transition-colors">Sign In</a>
+                <a href="{% url 'register' %}" class="block text-base font-bold text-cyan-400">Join Now</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex flex-col w-full relative">
+        {% block auth_background %}
+        {% endblock %}
+
+        <div class="relative z-10 w-full flex-grow flex flex-col">
+            {% block content %}
+            {% endblock content %}
+        </div>
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="bg-black border-t border-zinc-800 pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
+                <!-- Brand Info -->
+                <div class="col-span-2 space-y-6">
+                    <a href="{% url 'home' %}" class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-cyan-500 text-black flex items-center justify-center">
+                            <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+                        </div>
+                        <span class="text-lg font-bold text-white tracking-tight">TaskWizards</span>
+                    </a>
+                    <p class="text-zinc-500 text-sm max-w-xs leading-relaxed">
+                        Connecting businesses with the world's most talented freelance experts to get more things done.
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full border border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-cyan-400 hover:border-cyan-500/50 transition-all">
+                            <i class="fa-brands fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full border border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-cyan-400 hover:border-cyan-500/50 transition-all">
+                            <i class="fa-brands fa-facebook"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full border border-zinc-700 flex items-center justify-center text-zinc-500 hover:text-cyan-400 hover:border-cyan-500/50 transition-all">
+                            <i class="fa-brands fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Links Sections -->
+                <div>
+                    <h4 class="font-bold text-white mb-6 uppercase text-xs tracking-widest">Categories</h4>
+                    <ul class="space-y-4">
+                        <li><a href="#" class="text-sm text-zinc-500 hover:text-cyan-400 transition-colors">Graphics &amp; Design</a></li>
+                        <li><a href="#" class="text-sm text-zinc-500 hover:text-cyan-400 transition-colors">Digital Marketing</a></li>
+                        <li><a href="#" class="text-sm text-zinc-500 hover:text-cyan-400 transition-colors">Writing &amp; Translation</a></li>
+                        <li><a href="#" class="text-sm text-zinc-500 hover:text-cyan-400 transition-colors">Video &amp; Animation</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-white mb-6 uppercase text-xs tracking-widest">Explore</h4>
+                    <ul class="space-y-4">
+                        <li><a href="{% url 'marketplace:service_list' %}" class="text-sm text-zinc-500 hover:text-cyan-400 transition-colors">Marketplace</a></li>
+                        <li><a href="{% url 'how_it_works' %}" class="text-sm text-zinc-500 hover:text-cyan-400 transition-colors">How it Works</a></li>
+                        <li><a href="{% url 'about' %}" class="text-sm text-zinc-500 hover:text-cyan-400 transition-colors">About Us</a></li>
+                        <li><a href="#" class="text-sm text-zinc-500 hover:text-cyan-400 transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="text-sm text-zinc-500 hover:text-cyan-400 transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-white mb-6 uppercase text-xs tracking-widest">Support</h4>
+                    <ul class="space-y-4">
+                        <li><a href="#" class="text-sm text-zinc-500 hover:text-cyan-400 transition-colors">Help Center</a></li>
+                        <li><a href="#" class="text-sm text-zinc-500 hover:text-cyan-400 transition-colors">Trust &amp; Safety</a></li>
+                        <li><a href="#" class="text-sm text-zinc-500 hover:text-cyan-400 transition-colors">Selling on Wizards</a></li>
+                        <li><a href="#" class="text-sm text-zinc-500 hover:text-cyan-400 transition-colors">Buying on Wizards</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom Footer -->
+            <div class="pt-8 border-t border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-xs text-zinc-600">© 2026 Task Wizards International Ltd. All rights reserved.</p>
+                <div class="flex items-center gap-6">
+                    <span class="flex items-center gap-2 text-xs font-bold text-zinc-600">
+                        <i class="fa-solid fa-earth-americas"></i> English
+                    </span>
+                    <span class="flex items-center gap-2 text-xs font-bold text-zinc-600">
+                        ₹ INR
+                    </span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        if(menuBtn && mobileMenu) {
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+
+        // Toast dismissal logic
+        function dismissToast(id) {
+            const toast = document.getElementById(id);
+            if(toast) {
+                toast.classList.add('opacity-0', 'translate-x-[120%]');
+                setTimeout(() => toast.remove(), 300);
+            }
+        }
+
+        // Auto-dismiss alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', () => {
+            const toasts = document.querySelectorAll('[id^="toast-"]');
+            toasts.forEach(toast => {
+                setTimeout(() => {
+                    dismissToast(toast.id);
+                }, 5000);
+            });
+        });
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

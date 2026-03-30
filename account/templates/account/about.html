@@ -1,0 +1,99 @@
+{% extends "account/base.html" %}
+
+{% block title %}About Us | Task Wizards{% endblock %}
+
+{% block content %}
+<div class="bg-zinc-950 min-h-screen">
+    <!-- Hero Section -->
+    <div class="relative py-24 bg-zinc-950 overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <div class="absolute top-0 -left-1/4 w-1/2 h-full bg-cyan-500/8 rounded-full blur-[150px]"></div>
+            <div class="absolute bottom-0 -right-1/4 w-1/2 h-full bg-white/3 rounded-full blur-[150px]"></div>
+            <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(white 1px, transparent 1px), linear-gradient(to right, white 1px, transparent 1px); background-size: 60px 60px;"></div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-4 relative z-10 text-center">
+            <span class="inline-block px-4 py-1.5 rounded-full bg-zinc-800 border border-zinc-700 text-cyan-400 text-[10px] font-black uppercase tracking-[0.3em] mb-6">Our Story</span>
+            <h1 class="text-5xl md:text-7xl font-black text-white tracking-tight mb-8">
+                Empowering the<br/>
+                <span class="text-cyan-400">Digital Workforce</span>
+            </h1>
+            <p class="text-xl text-zinc-500 max-w-3xl mx-auto leading-relaxed">
+                Task Wizards is more than just a marketplace. We're a bridge between visionary ideas and the elite talent that brings them to life.
+            </p>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="max-w-7xl mx-auto px-4 -mt-12 relative z-20">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-zinc-900 p-10 rounded-[2.5rem] border border-zinc-800 text-center shadow-xl">
+                <p class="text-4xl font-black text-cyan-400 mb-2">10k+</p>
+                <p class="text-xs font-bold text-zinc-600 uppercase tracking-widest">Active Wizards</p>
+            </div>
+            <div class="bg-zinc-900 p-10 rounded-[2.5rem] border border-zinc-800 text-center shadow-xl">
+                <p class="text-4xl font-black text-white mb-2">99%</p>
+                <p class="text-xs font-bold text-zinc-600 uppercase tracking-widest">Success Rate</p>
+            </div>
+            <div class="bg-zinc-900 p-10 rounded-[2.5rem] border border-zinc-800 text-center shadow-xl">
+                <p class="text-4xl font-black text-white mb-2">24h</p>
+                <p class="text-xs font-bold text-zinc-600 uppercase tracking-widest">Avg. Delivery</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mission Section -->
+    <div class="py-32 max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+            <div class="space-y-8">
+                <h2 class="text-4xl font-black text-white leading-tight">We're on a mission to redefine <span class="text-cyan-400">collaboration</span>.</h2>
+                <p class="text-lg text-zinc-500 leading-relaxed">
+                    Founded in 2024, Task Wizards was born out of a simple frustration: finding high-quality digital services shouldn't be a gamble. We built a platform that prioritizes precision, speed, and absolute quality.
+                </p>
+                <div class="space-y-6">
+                    <div class="flex gap-6">
+                        <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 flex-shrink-0">
+                            <i class="fa-solid fa-gem text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white mb-1">Quality First</h4>
+                            <p class="text-sm text-zinc-500">Every service listed undergoes a rigorous quality check to ensure excellence.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-6">
+                        <div class="w-12 h-12 rounded-2xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 flex-shrink-0">
+                            <i class="fa-solid fa-shield-halved text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white mb-1">Secure Ecosystem</h4>
+                            <p class="text-sm text-zinc-500">Your payments and data are protected by industry-leading security protocols.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="relative">
+                <div class="aspect-square rounded-[3rem] bg-zinc-900 overflow-hidden shadow-2xl border border-zinc-800">
+                     <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-cover opacity-50">
+                </div>
+                <div class="absolute -bottom-10 -left-10 bg-zinc-800 border border-zinc-700 p-8 rounded-3xl shadow-2xl hidden md:block max-w-[200px]" style="box-shadow: 0 0 40px rgba(6,182,212,0.1)">
+                    <p class="text-xs font-black uppercase tracking-widest mb-2 text-zinc-500">Founded in</p>
+                    <p class="text-3xl font-black text-cyan-400">2024</p>
+                    <p class="text-[10px] mt-4 font-medium leading-relaxed italic text-zinc-600">"The future of work is decentralized and wizard-led."</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Section -->
+    <div class="py-24 bg-zinc-900 border-t border-zinc-800">
+        <div class="max-w-3xl mx-auto px-4 text-center space-y-8">
+            <h2 class="text-4xl font-black text-white">Ready to start your journey?</h2>
+            <p class="text-lg text-zinc-500">Whether you're looking for expert help or ready to offer your skills, there's a place for you here.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'register' %}" class="px-10 py-5 bg-cyan-500 text-black font-black rounded-2xl hover:bg-cyan-400 transition-all" style="box-shadow: 0 0 30px rgba(6,182,212,0.35)">Get Started Now</a>
+                <a href="{% url 'marketplace:service_list' %}" class="px-10 py-5 bg-zinc-800 text-white font-black rounded-2xl border border-zinc-700 hover:bg-zinc-700 transition-all">Browse Marketplace</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

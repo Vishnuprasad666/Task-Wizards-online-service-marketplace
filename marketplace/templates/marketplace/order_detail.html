@@ -1,0 +1,318 @@
+{% extends "account/base.html" %}
+
+{% block title %}Order #{{ order.id }} Details | Task Wizards{% endblock %}
+
+{% block content %}
+<div class="bg-zinc-950 min-h-screen py-12">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Breadcrumbs -->
+        <nav class="flex mb-8 text-sm font-medium text-zinc-600" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="{% if user.role == 'Buyer' %}{% url 'buyer_dashboard' %}{% else %}{% url 'seller_dashboard' %}{% endif %}" class="hover:text-cyan-400 transition-colors">Dashboard</a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-chevron-right text-[10px] mx-2"></i>
+                        <span class="text-zinc-300">Order #{{ order.id }}</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Main Content (Left) -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- Order Status Header -->
+                <div class="bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-800 shadow-xl relative overflow-hidden">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+                        <div>
+                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest 
+                                {% if order.status == 'Pending' %}bg-amber-500/10 text-amber-400 border border-amber-500/20
+                                {% elif order.status == 'Paid' %}bg-blue-500/10 text-blue-400 border border-blue-500/20
+                                {% elif order.status == 'In Progress' %}bg-cyan-500/10 text-cyan-400 border border-cyan-500/20
+                                {% elif order.status == 'Delivered' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+                                {% elif order.status == 'Revision Requested' %}bg-rose-500/10 text-rose-400 border border-rose-500/20
+                                {% elif order.status == 'Completed' %}bg-zinc-700 text-zinc-300
+                                {% else %}bg-rose-500/10 text-rose-400{% endif %}">
+                                {{ order.status }}
+                            </span>
+                            <h1 class="text-2xl font-black text-white mt-4 leading-tight">{{ order.service.title }}</h1>
+                            <p class="text-zinc-500 text-sm mt-1">Ordered on {{ order.created_at|date:"F d, Y" }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Order Amount</p>
+                            <p class="text-3xl font-black text-white">₹{{ order.amount }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Tracker Visual -->
+                    <div class="mt-10 pt-10 border-t border-zinc-800">
+                        <div class="relative">
+                            <div class="absolute top-1/2 left-0 w-full h-1 bg-zinc-800 -translate-y-1/2 rounded-full"></div>
+                            <div class="absolute top-1/2 left-0 h-1 bg-cyan-500 -translate-y-1/2 rounded-full transition-all duration-1000" 
+                                 style="--width: {{ order.get_progress_percentage }}%; width: var(--width);"></div>
+                            
+                            <div class="relative flex justify-between">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-8 h-8 rounded-full bg-cyan-500 text-black flex items-center justify-center text-xs ring-4 ring-zinc-950 relative z-10 shadow-lg">
+                                        <i class="fa-solid fa-receipt"></i>
+                                    </div>
+                                    <span class="text-[9px] font-black uppercase tracking-tight mt-3 text-white">Ordered</span>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <div class="w-8 h-8 rounded-full {% if order.status != 'Pending' %}bg-cyan-500 text-black{% else %}bg-zinc-800 text-zinc-600{% endif %} flex items-center justify-center text-xs ring-4 ring-zinc-950 relative z-10 transition-all">
+                                        <i class="fa-solid fa-credit-card"></i>
+                                    </div>
+                                    <span class="text-[9px] font-black uppercase tracking-tight mt-3 {% if order.status != 'Pending' %}text-white{% else %}text-zinc-600{% endif %}">Paid</span>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <div class="w-8 h-8 rounded-full {% if order.status == 'In Progress' or order.status == 'Delivered' or order.status == 'Completed' %}bg-cyan-500 text-black{% else %}bg-zinc-800 text-zinc-600{% endif %} flex items-center justify-center text-xs ring-4 ring-zinc-950 relative z-10 transition-all">
+                                        <i class="fa-solid fa-hammer"></i>
+                                    </div>
+                                    <span class="text-[9px] font-black uppercase tracking-tight mt-3 {% if order.status == 'In Progress' or order.status == 'Delivered' or order.status == 'Completed' %}text-white{% else %}text-zinc-600{% endif %}">Working</span>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <div class="w-8 h-8 rounded-full {% if order.status == 'Delivered' or order.status == 'Completed' %}bg-cyan-500 text-black{% else %}bg-zinc-800 text-zinc-600{% endif %} flex items-center justify-center text-xs ring-4 ring-zinc-950 relative z-10 transition-all">
+                                        <i class="fa-solid fa-box-open"></i>
+                                    </div>
+                                    <span class="text-[9px] font-black uppercase tracking-tight mt-3 {% if order.status == 'Delivered' or order.status == 'Completed' %}text-white{% else %}text-zinc-600{% endif %}">Delivered</span>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <div class="w-8 h-8 rounded-full {% if order.status == 'Completed' %}bg-emerald-500 text-white{% else %}bg-zinc-800 text-zinc-600{% endif %} flex items-center justify-center text-xs ring-4 ring-zinc-950 relative z-10 transition-all">
+                                        <i class="fa-solid fa-check"></i>
+                                    </div>
+                                    <span class="text-[9px] font-black uppercase tracking-tight mt-3 {% if order.status == 'Completed' %}text-emerald-400{% else %}text-zinc-600{% endif %}">Done</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Requirements / Buyer Note -->
+                <div class="bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-800">
+                    <h2 class="text-lg font-bold text-white mb-6 flex items-center gap-3">
+                        <i class="fa-solid fa-quote-left text-cyan-400"></i>
+                         Project Requirements
+                    </h2>
+                    <div class="p-6 rounded-2xl bg-zinc-800 border border-zinc-700">
+                        {% if order.buyer_note %}
+                            <p class="text-zinc-300 text-sm leading-relaxed">{{ order.buyer_note }}</p>
+                        {% else %}
+                            <p class="text-zinc-600 text-sm italic">No specific requirements mentioned by the buyer.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if order.status == 'Revision Requested' %}
+                <!-- Revision Note -->
+                <div class="bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-800 border-l-4 border-l-rose-500">
+                    <h2 class="text-lg font-bold text-white mb-6 flex items-center gap-3">
+                        <i class="fa-solid fa-rotate text-rose-400"></i>
+                         Revision Requested
+                    </h2>
+                    <div class="p-6 rounded-2xl bg-rose-500/10 border border-rose-500/20">
+                        <p class="text-sm font-bold text-zinc-300">Buyer's Revision Note:</p>
+                        <p class="text-zinc-400 text-sm leading-relaxed mt-2 italic">"{{ order.revision_note }}"</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Delivery Showcase -->
+                {% if order.delivery_file or order.status == 'Delivered' or order.status == 'Completed' %}
+                <div class="bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-800 border-l-4 border-l-emerald-500">
+                    <h2 class="text-lg font-bold text-white mb-6 flex items-center gap-3">
+                        <i class="fa-solid fa-truck-ramp-box text-emerald-400"></i>
+                        Work Delivery
+                    </h2>
+                    
+                    {% if order.delivery_file %}
+                    <div class="space-y-6">
+                        <div class="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-zinc-800 text-emerald-400 flex items-center justify-center text-xl border border-zinc-700">
+                                    <i class="fa-solid fa-file-invoice"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-zinc-200 truncate max-w-[200px] md:max-w-md">{{ order.delivery_file.name }}</p>
+                                    <p class="text-[10px] font-black text-emerald-500/60 uppercase tracking-widest mt-0.5">Project Assets</p>
+                                </div>
+                            </div>
+                            <a href="{{ order.delivery_file.url }}" download class="px-6 py-3 bg-emerald-500 text-black font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-emerald-400 transition-all">Download</a>
+                        </div>
+                        
+                        <div class="p-6 rounded-2xl bg-zinc-800 border border-zinc-700">
+                             <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Seller's Message</p>
+                             <p class="text-zinc-400 text-sm italic">"{{ order.delivery_message|default:"No message attached." }}"</p>
+                        </div>
+                    </div>
+                    {% else %}
+                        <div class="p-12 text-center text-zinc-600">
+                            <i class="fa-solid fa-hourglass-half text-3xl mb-4 opacity-40"></i>
+                            <p class="text-sm font-medium">Work is being prepared for delivery...</p>
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Action Buttons -->
+                <div class="pt-4">
+                    {% if user.role == 'Seller' %}
+                        {% if order.status == 'Paid' %}
+                        <form action="{% url 'marketplace:order_start' order.pk %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full py-6 bg-cyan-500 text-black font-black rounded-[2rem] hover:bg-cyan-400 transition-all text-lg" style="box-shadow: 0 0 25px rgba(6,182,212,0.3)">
+                                Start Working on this Project
+                            </button>
+                        </form>
+                        {% elif order.status == 'In Progress' or order.status == 'Revision Requested' %}
+                        <button onclick="document.getElementById('deliver-modal-{{ order.id }}').classList.remove('hidden')" class="w-full py-6 bg-emerald-500 text-black font-black rounded-[2rem] hover:bg-emerald-400 transition-all text-lg">
+                            Submit Final Delivery
+                        </button>
+                        {% endif %}
+                    {% elif user.role == 'Buyer' %}
+                        {% if order.status == 'Delivered' %}
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button onclick="document.getElementById('revision-modal-{{ order.id }}').classList.remove('hidden')" class="flex-grow py-6 bg-zinc-800 border border-zinc-700 text-zinc-300 font-black rounded-[2rem] hover:bg-zinc-700 transition-all text-lg">
+                                Request Revision
+                            </button>
+                            <button onclick="document.getElementById('complete-order-{{ order.id }}').classList.remove('hidden')" class="flex-grow py-6 bg-emerald-500 text-black font-black rounded-[2rem] hover:bg-emerald-400 transition-all text-lg">
+                                Approve &amp; Review
+                            </button>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if order.status == 'Completed' %}
+                    <div class="text-center py-4">
+                        <p class="text-emerald-400 font-bold flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-circle-check"></i> Order marked as completed
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar (Right) -->
+            <div class="space-y-8">
+                
+                <!-- Counterpart Profile Card -->
+                <div class="bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-800 shadow-xl text-center">
+                    <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-6 border-b border-zinc-800 pb-4">
+                        {% if user.role == 'Buyer' %}About the Seller{% else %}About the Client{% endif %}
+                    </p>
+                    <div class="relative inline-block mb-4">
+                        <img src="{% if user.role == 'Buyer' %}{{ order.service.seller.seller_profile.photo.url }}{% else %}{{ order.buyer.buyer_profile.photo.url }}{% endif %}" 
+                             class="w-24 h-24 rounded-full border-4 border-zinc-800 shadow-md">
+                        <div class="absolute bottom-0 right-0 w-6 h-6 bg-emerald-500 rounded-full border-2 border-zinc-900"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">{{ chat_user.username }}</h3>
+                        <p class="text-xs font-medium text-zinc-500 mt-1">
+                            {% if user.role == 'Buyer' %}Top Rated Professional{% else %}Project Manager{% endif %}
+                        </p>
+                    </div>
+                    <div class="mt-8 pt-8 border-t border-zinc-800 space-y-4">
+                        <a href="{% url 'marketplace:chat_detail' chat_user.id %}" class="w-full py-4 bg-zinc-800 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-zinc-700 transition-all flex items-center justify-center gap-2 border border-zinc-700">
+                            <i class="fa-solid fa-message"></i> Send Message
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Service Quick Stats -->
+                <div class="bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-800">
+                    <h4 class="font-bold text-white mb-6">Service Details</h4>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-zinc-500">Service Price</span>
+                            <span class="font-black text-white">₹{{ order.service.price }}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-zinc-500">Delivery Period</span>
+                            <span class="font-black text-cyan-400">{{ order.service.delivery_time }} Days</span>
+                        </div>
+                        <div class="pt-4">
+                             <a href="{% url 'marketplace:service_detail' order.service.id %}" class="text-[10px] font-black text-cyan-400 uppercase tracking-widest hover:text-cyan-300 transition-colors">View Gig Page →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Seller Delivery Modal -->
+{% if user.role == 'Seller' %}
+<div id="deliver-modal-{{ order.id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8 max-w-lg w-full shadow-2xl space-y-6">
+        <h3 class="text-2xl font-black text-white">Deliver Your Work</h3>
+        <form action="{% url 'marketplace:order_deliver' order.pk %}" method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            <div class="space-y-2">
+                <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Upload Delivery</label>
+                <input type="file" name="delivery_file" class="w-full text-sm text-zinc-400 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-xs file:font-black file:uppercase file:tracking-widest file:bg-cyan-500/10 file:text-cyan-400 hover:file:bg-cyan-500/20 cursor-pointer" required>
+            </div>
+            <div class="space-y-2">
+                <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Message to Buyer</label>
+                <textarea name="delivery_message" rows="3" class="w-full p-4 bg-zinc-800 border border-zinc-700 rounded-2xl text-sm text-white focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 outline-none placeholder-zinc-600" required></textarea>
+            </div>
+            <div class="flex gap-4 pt-4">
+                <button type="button" onclick="document.getElementById('deliver-modal-{{ order.id }}').classList.add('hidden')" class="flex-grow py-4 text-sm font-bold text-zinc-500 hover:text-zinc-300">Cancel</button>
+                <button type="submit" class="flex-grow py-4 px-8 bg-cyan-500 text-black font-black rounded-2xl hover:bg-cyan-400 transition-all">Submit Delivery</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% else %}
+<!-- Buyer Revision Modal -->
+<div id="revision-modal-{{ order.id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8 max-w-lg w-full shadow-2xl space-y-6">
+        <h3 class="text-2xl font-black text-white">Request Revision</h3>
+        <p class="text-sm text-zinc-500">Explain what changes you'd like the seller to make.</p>
+        <form action="{% url 'marketplace:order_revision' order.pk %}" method="POST" class="space-y-6">
+            {% csrf_token %}
+            <div class="space-y-2">
+                <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Revision Details</label>
+                <textarea name="revision_note" rows="4" class="w-full p-4 bg-zinc-800 border border-zinc-700 rounded-2xl text-sm text-white focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 outline-none placeholder-zinc-600" placeholder="Be as specific as possible..." required></textarea>
+            </div>
+            <div class="flex gap-4">
+                <button type="button" onclick="document.getElementById('revision-modal-{{ order.id }}').classList.add('hidden')" class="flex-grow py-4 text-sm font-bold text-zinc-500 hover:text-zinc-300">Cancel</button>
+                <button type="submit" class="flex-grow py-4 px-8 bg-rose-500 text-white font-black rounded-2xl hover:bg-rose-600 transition-all">Submit Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Buyer Complete Modal -->
+<div id="complete-order-{{ order.id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8 max-w-lg w-full shadow-2xl space-y-6">
+        <h3 class="text-2xl font-black text-white">Complete &amp; Review</h3>
+        <form action="{% url 'marketplace:order_complete' order.pk %}" method="POST" class="space-y-6">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Rating</label>
+                <div class="flex gap-4">
+                    {% for i in "12345" %}
+                    <label class="cursor-pointer">
+                        <input type="radio" name="rating" value="{{ i }}" class="sr-only peer" required>
+                        <div class="w-10 h-10 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-500 peer-checked:bg-amber-500/20 peer-checked:text-amber-400 peer-checked:border-amber-500/30 hover:bg-zinc-700 transition-all font-bold">{{ i }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Your Feedback</label>
+                <textarea name="comment" rows="3" class="w-full p-4 bg-zinc-800 border border-zinc-700 rounded-2xl text-sm text-white focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 outline-none placeholder-zinc-600" placeholder="How was your experience?" required></textarea>
+            </div>
+            <div class="flex gap-4">
+                <button type="button" onclick="document.getElementById('complete-order-{{ order.id }}').classList.add('hidden')" class="flex-grow py-4 text-sm font-bold text-zinc-500 hover:text-zinc-300">Cancel</button>
+                <button type="submit" class="flex-grow py-4 px-8 bg-emerald-500 text-black font-black rounded-2xl hover:bg-emerald-400 transition-all">Submit Review</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
