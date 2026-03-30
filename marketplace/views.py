@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.contrib.auth import get_user_model
 
 from marketplace.models import Service, Order, Category, Message, Review, Favourite
@@ -34,7 +34,20 @@ class ServiceListView(ListView):
             queryset = queryset.filter(category_id=category_id)
         if search_query:
             queryset = queryset.filter(Q(title__icontains=search_query) | Q(description__icontains=search_query))
-        return queryset.order_by("-seller__seller_profile__rating", "-created_at")
+        
+        sort_by = self.request.GET.get("sort")
+        if sort_by == "price_low":
+            queryset = queryset.order_by("price")
+        elif sort_by == "price_high":
+            queryset = queryset.order_by("-price")
+        elif sort_by == "newest":
+            queryset = queryset.order_by("-created_at")
+        elif sort_by == "best_selling":
+            queryset = queryset.annotate(num_orders=Count('orders', filter=Q(orders__status='Completed'))).order_by("-num_orders")
+        else:
+            queryset = queryset.order_by("-seller__seller_profile__rating", "-created_at")
+            
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
