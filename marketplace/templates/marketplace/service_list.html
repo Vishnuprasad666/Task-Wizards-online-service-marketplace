@@ -17,6 +17,10 @@
                         <div class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-cyan-400 transition-colors">
                             <i class="fa-solid fa-magnifying-glass"></i>
                         </div>
+                        {% if request.GET.category %}<input type="hidden" name="category" value="{{ request.GET.category }}">{% endif %}
+                        {% if request.GET.min_price %}<input type="hidden" name="min_price" value="{{ request.GET.min_price }}">{% endif %}
+                        {% if request.GET.max_price %}<input type="hidden" name="max_price" value="{{ request.GET.max_price }}">{% endif %}
+                        {% if request.GET.sort %}<input type="hidden" name="sort" value="{{ request.GET.sort }}">{% endif %}
                     </form>
                 </div>
 
@@ -24,13 +28,13 @@
                 <div class="space-y-4">
                     <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest px-2">Categories</h3>
                     <div class="space-y-1">
-                        <a href="?{% if request.GET.search %}search={{ request.GET.search }}{% endif %}" 
+                        <a href="?{% if request.GET.search %}search={{ request.GET.search }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
                            class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all {% if not request.GET.category %}bg-cyan-500/10 text-cyan-400 border border-cyan-500/20{% else %}text-zinc-400 hover:bg-zinc-800 hover:text-white{% endif %}">
                             <span>All Categories</span>
                             <i class="fa-solid fa-chevron-right text-[10px] opacity-50"></i>
                         </a>
                         {% for category in categories %}
-                        <a href="?category={{ category.id }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" 
+                        <a href="?category={{ category.id }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
                            class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all {% if request.GET.category == category.id|stringformat:'i' %}bg-cyan-500/10 text-cyan-400 border border-cyan-500/20{% else %}text-zinc-400 hover:bg-zinc-800 hover:text-white{% endif %}">
                             <span>{{ category.name }}</span>
                             <i class="fa-solid fa-chevron-right text-[10px] opacity-50"></i>
@@ -40,19 +44,27 @@
                 </div>
 
                 <!-- Budget Filter -->
-                <div class="space-y-4 pt-6 border-t border-zinc-800">
-                    <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest px-2">Budget</h3>
+                <form action="" method="GET" class="space-y-4 pt-6 border-t border-zinc-800">
+                    {% if request.GET.category %}<input type="hidden" name="category" value="{{ request.GET.category }}">{% endif %}
+                    {% if request.GET.search %}<input type="hidden" name="search" value="{{ request.GET.search }}">{% endif %}
+                    {% if request.GET.sort %}<input type="hidden" name="sort" value="{{ request.GET.sort }}">{% endif %}
+                    
+                    <div class="flex items-center justify-between px-2">
+                        <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest">Budget</h3>
+                        <button type="submit" class="text-[10px] font-bold text-cyan-500 hover:text-cyan-400 uppercase tracking-wider transition-colors cursor-pointer group-hover:underline">Apply</button>
+                    </div>
+                    
                     <div class="grid grid-cols-2 gap-4 px-2">
                         <div class="space-y-2">
                             <label class="text-[10px] font-bold text-zinc-600 uppercase">Min</label>
-                            <input type="number" placeholder="₹" class="w-full h-10 px-3 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-white focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 outline-none placeholder-zinc-700">
+                            <input type="number" name="min_price" value="{{ request.GET.min_price|default:'' }}" placeholder="₹" class="w-full h-10 px-3 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-white focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 outline-none placeholder-zinc-700">
                         </div>
                         <div class="space-y-2">
                             <label class="text-[10px] font-bold text-zinc-600 uppercase">Max</label>
-                            <input type="number" placeholder="₹" class="w-full h-10 px-3 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-white focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 outline-none placeholder-zinc-700">
+                            <input type="number" name="max_price" value="{{ request.GET.max_price|default:'' }}" placeholder="₹" class="w-full h-10 px-3 bg-zinc-900 border border-zinc-700 rounded-lg text-sm text-white focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 outline-none placeholder-zinc-700">
                         </div>
                     </div>
-                </div>
+                </form>
 
                 <!-- Delivery Time -->
                 <div class="space-y-4 pt-6 border-t border-zinc-800">
@@ -96,6 +108,9 @@
                              {% if request.GET.category %}
                                 <input type="hidden" name="category" value="{{ request.GET.category }}">
                              {% endif %}
+                             {% if request.GET.min_price %}<input type="hidden" name="min_price" value="{{ request.GET.min_price }}">{% endif %}
+                             {% if request.GET.max_price %}<input type="hidden" name="max_price" value="{{ request.GET.max_price }}">{% endif %}
+                             {% if request.GET.sort %}<input type="hidden" name="sort" value="{{ request.GET.sort }}">{% endif %}
                         </form>
 
                         <div class="flex items-center gap-3">
@@ -174,7 +189,7 @@
                 <div class="mt-16 flex justify-center">
                     <nav class="flex items-center gap-2">
                         {% if page_obj.has_previous %}
-                        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" 
+                        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
                            class="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all">
                             <i class="fa-solid fa-chevron-left text-xs"></i>
                         </a>
@@ -184,7 +199,7 @@
                             {% if page_obj.number == num %}
                             <span class="w-10 h-10 flex items-center justify-center rounded-xl bg-cyan-500 text-black font-bold" style="box-shadow: 0 0 15px rgba(6,182,212,0.4)">{{ num }}</span>
                             {% else %}
-                            <a href="?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" 
+                            <a href="?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
                                class="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-400 font-bold hover:text-cyan-400 hover:border-cyan-500/50 transition-all">
                                 {{ num }}
                             </a>
@@ -192,7 +207,7 @@
                         {% endfor %}
                         
                         {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" 
+                        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
                            class="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all">
                             <i class="fa-solid fa-chevron-right text-xs"></i>
                         </a>
