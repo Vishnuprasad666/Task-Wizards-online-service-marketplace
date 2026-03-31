@@ -152,9 +152,60 @@ class Notification(models.Model):
     def __str__(self):
         return f"Notification for {self.user.username}: {self.message}"
 
+import threading
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+
+def send_email_in_background(user, message, link):
+    """
+    Background worker function that sends the email.
+    """
+    if not user.email:
+        return
+        
+    subject = "Task Wizards: New Notification"
+    from_email = settings.EMAIL_HOST_USER
+    to = [user.email]
+    
+    # Context for the template
+    # Since we don't have request context here, we construct a generic site_url 
+    # (In production, you'd pull this from settings.SITE_URL)
+    site_url = "http://127.0.0.1:8000"
+    
+    context = {
+        "user": user,
+        "message": message,
+        "link": link,
+        "site_url": site_url,
+    }
+    
+    # Render the HTML template we just created
+    html_content = render_to_string("marketplace/email/notification.html", context)
+    
+    # Create the plain-text fallback gracefully
+    text_content = strip_tags(html_content)
+    
+    # Compose the email
+    email = EmailMultiAlternatives(subject, text_content, from_email, to)
+    email.attach_alternative(html_content, "text/html")
+    
+    try:
+        email.send()
+    except Exception as e:
+        print(f"Error sending email to {user.email}: {e}")
+
+
 def send_notification(user, message, link=""):
     """
-    Helper function to create a new notification.
-    Future phase: Easily add email integration here.
+    Creates a new notification record AND triggers an asynchronous email.
     """
+    # 1. Create the database record immediately
     Notification.objects.create(user=user, message=message, link=link)
+    
+    # 2. Fire and forget the email in a separate thread so the user doesn't wait
+    email_thread = threading.Thread(
+        target=send_email_in_background, 
+        args=(user, message, link)
+    )
+    email_thread.start()
