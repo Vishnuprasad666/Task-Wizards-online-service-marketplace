@@ -11,7 +11,7 @@ from django.utils.decorators import method_decorator
 from django.db.models import Q, Count
 from django.contrib.auth import get_user_model
 
-from marketplace.models import Service, Order, Category, Message, Review, Favourite
+from marketplace.models import Service, Order, Category, Message, Review, Favourite, Notification, send_notification
 from marketplace.forms import ServiceForm
 from account.views import BuyerRequiredMixin, SellerRequiredMixin
 
@@ -173,6 +173,14 @@ class PaymentCallbackView(View):
             order.razorpay_signature = signature
             order.status = "Paid"  # Guide implies Paid should move to "In Progress" eventually
             order.save()
+            
+            # Notify seller about the payment
+            send_notification(
+                user=order.service.seller,
+                message=f"New order received for '{order.service.title}'. Payment is completed.",
+                link=reverse_lazy("marketplace:order_detail", kwargs={"pk": order.pk})
+            )
+            
             messages.success(request, "Payment successful! The seller will start working soon.")
             return redirect("marketplace:order_detail", pk=order.pk)
         except Exception as e:
@@ -192,6 +200,14 @@ class OrderDeliverView(LoginRequiredMixin, SellerRequiredMixin, View):
             order.delivery_message = delivery_message
             order.status = "Delivered"
             order.save()
+            
+            # Notify buyer about delivery
+            send_notification(
+                user=order.buyer,
+                message=f"Seller delivered '{order.service.title}'. Please review.",
+                link=reverse_lazy("marketplace:order_detail", kwargs={"pk": order.pk})
+            )
+            
             messages.success(request, "Task delivered successfully!")
         else:
             messages.error(request, "Please attach a file for delivery.")
@@ -203,6 +219,14 @@ class OrderStartView(LoginRequiredMixin, SellerRequiredMixin, View):
         order = get_object_or_404(Order, pk=pk, service__seller=request.user, status="Paid")
         order.status = "In Progress"
         order.save()
+        
+        # Notify buyer that the order has started
+        send_notification(
+            user=order.buyer,
+            message=f"Seller has started working on '{order.service.title}'.",
+            link=reverse_lazy("marketplace:order_detail", kwargs={"pk": order.pk})
+        )
+        
         messages.success(request, "Order started! Let's get to work.")
         return redirect("marketplace:order_detail", pk=pk)
 
@@ -228,6 +252,13 @@ class OrderCompleteView(LoginRequiredMixin, BuyerRequiredMixin, View):
             seller_profile.rating = avg_rating
             seller_profile.save()
             
+        # Notify seller about completion
+        send_notification(
+            user=order.service.seller,
+            message=f"Your order '{order.service.title}' has been marked completed by {request.user.username}.",
+            link=reverse_lazy("marketplace:order_detail", kwargs={"pk": order.pk})
+        )
+            
         messages.success(request, "Order completed and review submitted!")
         return redirect("marketplace:order_detail", pk=pk)
 
@@ -240,6 +271,14 @@ class OrderRevisionView(LoginRequiredMixin, BuyerRequiredMixin, View):
             order.revision_note = revision_note
             order.revision_count += 1
             order.save()
+            
+            # Notify seller about revision
+            send_notification(
+                user=order.service.seller,
+                message=f"Buyer requested a revision for '{order.service.title}'.",
+                link=reverse_lazy("marketplace:order_detail", kwargs={"pk": order.pk})
+            )
+            
             messages.success(request, "Revision requested successfully.")
         else:
             messages.error(request, "Please provide a revision note.")
@@ -310,6 +349,14 @@ class ChatDetailView(LoginRequiredMixin, View):
         content = request.POST.get("content")
         if content:
             Message.objects.create(sender=request.user, receiver=other_user, content=content)
+            
+            # Notify receiver about new message
+            send_notification(
+                user=other_user,
+                message=f"New message from {request.user.username}.",
+                link=reverse_lazy("marketplace:chat_detail", kwargs={"user_id": request.user.id})
+            )
+            
         return redirect("marketplace:chat_detail", user_id=user_id)
 
 class ToggleFavouriteView(LoginRequiredMixin, BuyerRequiredMixin, View):
@@ -335,3 +382,29 @@ class FavouriteListView(LoginRequiredMixin, BuyerRequiredMixin, ListView):
 
     def get_queryset(self):
         return Favourite.objects.filter(user=self.request.user).select_related('service').order_by("-created_at")
+
+# --- NOTIFICATIONS ---
+
+class NotificationListView(LoginRequiredMixin, ListView):
+    model = Notification
+    template_name = "marketplace/notification_list.html"
+    context_object_name = "notifications"
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)
+
+class MarkNotificationReadView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        notification = get_object_or_404(Notification, pk=pk, user=request.user)
+        notification.is_read = True
+        notification.save()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({"status": "success"})
+        if notification.link:
+            return redirect(notification.link)
+        return redirect("marketplace:notification_list")
+
+class UnreadNotificationCountView(LoginRequiredMixin, View):
+    def get(self, request):
+        count = Notification.objects.filter(user=request.user, is_read=False).count()
+        return JsonResponse({"unread_count": count})

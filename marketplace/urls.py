@@ -28,4 +28,9 @@ urlpatterns = [
     path("order/<int:pk>/", views.OrderDetailView.as_view(), name="order_detail"),
     path("order/<int:pk>/start/", views.OrderStartView.as_view(), name="order_start"),
     path("order/<int:pk>/revision/", views.OrderRevisionView.as_view(), name="order_revision"),
+    
+    # Notifications
+    path("notifications/", views.NotificationListView.as_view(), name="notification_list"),
+    path("notifications/<int:pk>/read/", views.MarkNotificationReadView.as_view(), name="mark_notification_read"),
+    path("notifications/unread-count/", views.UnreadNotificationCountView.as_view(), name="unread_notification_count"),
 ]

@@ -1,0 +1,53 @@
+{% extends "account/base.html" %}
+
+{% block title %}Notifications | Task Wizards{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="mb-10 block">
+        <h1 class="text-3xl font-black text-white tracking-tight">Notifications</h1>
+        <p class="text-zinc-500 mt-1">Stay updated on your orders securely.</p>
+    </div>
+
+    {% if notifications %}
+        <div class="space-y-4">
+            {% for notification in notifications %}
+            <div class="{% if not notification.is_read %}bg-zinc-800 border-cyan-500/50{% else %}bg-zinc-900 border-zinc-800{% endif %} rounded-2xl border p-5 flex items-start justify-between hover:border-zinc-600 transition-all duration-300">
+                <div class="flex-1">
+                    <p class="text-zinc-200 text-lg {% if not notification.is_read %}font-bold{% else %}font-medium{% endif %}">
+                        {{ notification.message }}
+                    </p>
+                    <p class="text-zinc-500 text-xs mt-2 font-mono">
+                        <i class="fa-regular fa-clock mr-1"></i>{{ notification.created_at|timesince }} ago
+                    </p>
+                </div>
+                
+                <div class="ml-4 flex items-center gap-3">
+                    {% if not notification.is_read %}
+                        <form action="{% url 'marketplace:mark_notification_read' notification.pk %}" method="POST" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-xs font-bold text-emerald-400 hover:text-emerald-300 border border-emerald-400/30 hover:border-emerald-400 px-3 py-1.5 rounded-full transition-all">
+                                Mark Read
+                            </button>
+                        </form>
+                    {% endif %}
+                    {% if notification.link %}
+                        <a href="{{ notification.link }}" class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-cyan-400 hover:bg-cyan-500 hover:text-black transition-all shadow-lg border border-zinc-700 hover:border-cyan-400">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="py-24 bg-zinc-900 rounded-2xl border-2 border-dashed border-zinc-700 flex flex-col items-center justify-center text-center px-6">
+            <div class="w-20 h-20 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-600 mx-auto mb-6 text-3xl">
+                <i class="fa-regular fa-bell"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white italic">All caught up!</h3>
+            <p class="text-zinc-500 text-sm mt-3 max-w-xs mx-auto font-medium">You don't have any notifications at the moment.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
