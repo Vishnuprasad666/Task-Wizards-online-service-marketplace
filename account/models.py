@@ -14,6 +14,9 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="Buyer")
     phone = models.CharField(max_length=15)
+    location = models.CharField(max_length=100, blank=True)
+    linkedin_profile = models.URLField(blank=True, null=True)
+    twitter_profile = models.URLField(blank=True, null=True)
     is_verified = models.BooleanField(default=False)
     otp = models.CharField(max_length=10, null=True, blank=True)
 
@@ -36,6 +39,9 @@ class BuyerProfile(models.Model):
     
     owner = models.OneToOneField(User,on_delete=models.CASCADE,related_name="buyer_profile")
     bio = models.CharField(max_length=300, blank=True)
+    company_name = models.CharField(max_length=100, blank=True)
+    interests = models.CharField(max_length=200, blank=True)
+    website = models.URLField(blank=True)
     address = models.TextField(null=True, blank=True)
     photo = models.ImageField(upload_to="buyer_profiles/",default="buyer_profiles/default.png")
 
@@ -50,7 +56,11 @@ class SellerProfile(models.Model):
     owner = models.OneToOneField(User,on_delete=models.CASCADE,related_name="seller_profile")
     bio = models.CharField(max_length=300, blank=True)
     expertise = models.CharField(max_length=200, blank=True)
+    skills = models.CharField(max_length=300, blank=True)
+    education = models.CharField(max_length=200, blank=True)
     portfolio_link = models.URLField(blank=True)
+    hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    is_available = models.BooleanField(default=True)
     photo = models.ImageField(upload_to="seller_profiles/",default="seller_profiles/default.png")
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=5.00)
     orders_completed = models.PositiveIntegerField(default=0)

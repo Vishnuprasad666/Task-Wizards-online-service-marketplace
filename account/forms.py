@@ -50,6 +50,20 @@ class UserForm(UserCreationForm):
         if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError("Email already exists")
         return email
+
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "email", "phone", "location", "linkedin_profile", "twitter_profile"]
+        widgets = {
+            "first_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "First Name"}),
+            "last_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Last Name"}),
+            "email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "Email"}),
+            "phone": forms.TextInput(attrs={"class": "form-control", "placeholder": "Phone"}),
+            "location": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. New York, USA"}),
+            "linkedin_profile": forms.URLInput(attrs={"class": "form-control", "placeholder": "LinkedIn Profile URL"}),
+            "twitter_profile": forms.URLInput(attrs={"class": "form-control", "placeholder": "Twitter Profile URL"}),
+        }
     
 class OTPForm(forms.Form):
 
@@ -77,13 +91,16 @@ class LoginForm(forms.Form):
 # -------------------------
 
 class BuyerProfileForm(forms.ModelForm):
-    photo = forms.ImageField(widget=forms.FileInput(attrs={"class": "form-control"}))
+    photo = forms.ImageField(widget=forms.FileInput(attrs={"class": "form-control"}), required=False)
     class Meta:
         model = BuyerProfile
         exclude = ["owner"]
         widgets = {
             "bio": forms.TextInput(attrs={"class": "form-control","placeholder": "Write something about yourself"}),
-            "address": forms.Textarea(attrs={"class": "form-control","placeholder": "Enter your address"}),
+            "company_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Company Name"}),
+            "interests": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Design, Marketing, Development"}),
+            "website": forms.URLInput(attrs={"class": "form-control", "placeholder": "Website URL"}),
+            "address": forms.Textarea(attrs={"class": "form-control", "placeholder": "Enter your address", "rows": 3}),
         }
 
 
@@ -92,17 +109,19 @@ class BuyerProfileForm(forms.ModelForm):
 # -------------------------
 
 class SellerProfileForm(forms.ModelForm):
-    photo = forms.ImageField(widget=forms.FileInput(attrs={"class": "form-control"}))
+    photo = forms.ImageField(widget=forms.FileInput(attrs={"class": "form-control"}), required=False)
     class Meta:
         model = SellerProfile
         exclude = ["owner", "rating", "orders_completed"]
 
         widgets = {
-
             "bio": forms.TextInput(attrs={"class": "form-control","placeholder": "Write about yourself"}),
-            "expertise": forms.TextInput(attrs={"class": "form-control","placeholder": "Your skills (e.g. Web Development)"}),
+            "expertise": forms.TextInput(attrs={"class": "form-control","placeholder": "Main expertise"}),
+            "skills": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Logo Design, Python, SEO"}),
+            "education": forms.TextInput(attrs={"class": "form-control", "placeholder": "Degree / Institution"}),
             "portfolio_link": forms.URLInput(attrs={"class": "form-control","placeholder": "Portfolio / Website link"}),
-
+            "hourly_rate": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Hourly Rate (in ₹)"}),
+            "is_available": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
 # -------------------------

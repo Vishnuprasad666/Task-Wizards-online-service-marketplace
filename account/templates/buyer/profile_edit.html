@@ -30,17 +30,11 @@
 
     <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
         <div class="p-8 sm:p-10">
-            <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            <form method="POST" enctype="multipart/form-data" class="space-y-12">
                 {% csrf_token %}
 
-                {% if form.non_field_errors %}
-                <div class="p-4 mb-6 text-sm text-red-400 rounded-xl bg-red-500/10 border border-red-500/20">
-                    {{ form.non_field_errors }}
-                </div>
-                {% endif %}
-
                 <!-- Profile Picture Section -->
-                <div class="flex flex-col items-center pb-8 border-b border-zinc-800 mb-8">
+                <div class="flex flex-col items-center pb-8 border-b border-zinc-800">
                     <div class="relative group">
                         <div class="w-32 h-32 rounded-full border-4 border-zinc-700 shadow-lg overflow-hidden bg-zinc-800">
                             {% if request.user.buyer_profile.photo %}
@@ -55,44 +49,94 @@
                             <i class="fa-solid fa-camera text-sm"></i>
                         </label>
                     </div>
-                    <p class="text-xs text-zinc-600 mt-4 font-medium">Click the camera to upload a new photo</p>
+                    <p class="text-xs text-zinc-600 mt-4 font-medium uppercase tracking-widest">Update Avatar</p>
                     <div class="hidden">{{ form.photo }}</div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-6">
-                    {% for field in form %}
-                        {% if field.name != 'photo' %}
-                        <div class="space-y-1.5">
-                            <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-zinc-300">
-                                {{ field.label }}
-                            </label>
-                            <div class="relative">
+                <!-- Account Settings -->
+                <div class="space-y-6">
+                    <h3 class="text-sm font-black text-zinc-500 uppercase tracking-widest border-l-2 border-cyan-500 pl-4 py-1">Account & Location</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for field in user_form %}
+                            {% if field.name != 'linkedin_profile' and field.name != 'twitter_profile' %}
+                            <div class="space-y-1.5">
+                                <label for="{{ field.id_for_label }}" class="block text-xs font-black text-zinc-400 uppercase tracking-tight">{{ field.label }}</label>
                                 {{ field }}
-                                <script>
-                                    (function() {
-                                        const input = document.getElementById('{{ field.id_for_label }}');
-                                        if (input) {
-                                            const base = 'bg-zinc-800 border border-zinc-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 block w-full p-3 transition duration-200 outline-none';
-                                            input.className = base + (input.tagName === 'TEXTAREA' ? ' h-32 resize-none' : '');
-                                        }
-                                    })();
-                                </script>
+                                {% if field.errors %}<p class="text-[10px] text-red-400 font-bold">{{ field.errors.0 }}</p>{% endif %}
                             </div>
-                            {% if field.help_text %}<p class="text-xs text-zinc-600 mt-1">{{ field.help_text }}</p>{% endif %}
-                            {% if field.errors %}<p class="text-xs text-red-400 mt-1 font-medium">{{ field.errors.0 }}</p>{% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Social Links -->
+                <div class="space-y-6">
+                    <h3 class="text-sm font-black text-zinc-500 uppercase tracking-widest border-l-2 border-cyan-500 pl-4 py-1">Social Networks</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-1.5">
+                             <label for="{{ user_form.linkedin_profile.id_for_label }}" class="block text-xs font-black text-zinc-400 uppercase tracking-tight">LinkedIn URL</label>
+                             <div class="relative">
+                                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"><i class="fa-brands fa-linkedin text-lg"></i></span>
+                                 {{ user_form.linkedin_profile }}
+                             </div>
                         </div>
-                        {% endif %}
-                    {% endfor %}
+                        <div class="space-y-1.5">
+                             <label for="{{ user_form.twitter_profile.id_for_label }}" class="block text-xs font-black text-zinc-400 uppercase tracking-tight">Twitter URL</label>
+                             <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"><i class="fa-brands fa-twitter text-lg"></i></span>
+                                {{ user_form.twitter_profile }}
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Details -->
+                <div class="space-y-6">
+                    <h3 class="text-sm font-black text-zinc-500 uppercase tracking-widest border-l-2 border-cyan-500 pl-4 py-1">Profile Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2 space-y-1.5">
+                            <label for="{{ form.bio.id_for_label }}" class="block text-xs font-black text-zinc-400 uppercase tracking-tight">Bio</label>
+                            {{ form.bio }}
+                        </div>
+                        <div class="space-y-1.5">
+                            <label for="{{ form.company_name.id_for_label }}" class="block text-xs font-black text-zinc-400 uppercase tracking-tight">Company Name</label>
+                            {{ form.company_name }}
+                        </div>
+                        <div class="space-y-1.5">
+                            <label for="{{ form.website.id_for_label }}" class="block text-xs font-black text-zinc-400 uppercase tracking-tight">Website URL</label>
+                            {{ form.website }}
+                        </div>
+                        <div class="md:col-span-2 space-y-1.5">
+                            <label for="{{ form.interests.id_for_label }}" class="block text-xs font-black text-zinc-400 uppercase tracking-tight">Interests</label>
+                            {{ form.interests }}
+                        </div>
+                        <div class="md:col-span-2 space-y-1.5">
+                            <label for="{{ form.address.id_for_label }}" class="block text-xs font-black text-zinc-400 uppercase tracking-tight">Address</label>
+                            {{ form.address }}
+                        </div>
+                    </div>
                 </div>
 
                 <div class="pt-8 flex flex-col sm:flex-row gap-4">
-                    <button type="submit" class="flex-grow w-full text-black bg-cyan-500 hover:bg-cyan-400 transition duration-300 font-bold rounded-xl text-sm px-5 py-4 text-center" style="box-shadow: 0 0 20px rgba(6,182,212,0.3)">
-                        Save Changes <i class="fa-solid fa-check ml-2"></i>
+                    <button type="submit" class="flex-grow w-full text-black bg-cyan-500 hover:bg-cyan-400 transition duration-300 font-black text-[11px] uppercase tracking-[0.2em] px-5 py-5 text-center rounded-2xl" style="box-shadow: 0 0 20px rgba(6,182,212,0.3)">
+                        Confirm Changes <i class="fa-solid fa-check ml-2"></i>
                     </button>
-                    <a href="{% url 'buyer_dashboard' %}" class="px-8 py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-semibold rounded-xl text-sm transition text-center border border-zinc-700">
-                        Cancel
+                    <a href="{% url 'buyer_dashboard' %}" class="px-8 py-5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl transition text-center border border-zinc-700">
+                        Discard
                     </a>
                 </div>
+            </form>
+
+            <script>
+                // Auto-apply styles to all inputs
+                document.querySelectorAll('input:not([type="checkbox"]):not([type="file"]):not([type="radio"]), textarea, select').forEach(input => {
+                    const base = 'bg-zinc-800/50 border border-zinc-700/50 text-white text-sm rounded-xl focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500 block w-full p-4 transition duration-200 outline-none placeholder:text-zinc-600';
+                    input.className = base + (input.tagName === 'TEXTAREA' ? ' h-32' : '');
+                    if (input.id.includes('linkedin') || input.id.includes('twitter')) {
+                        input.classList.add('pl-12');
+                    }
+                });
+            </script>
             </form>
         </div>
     </div>

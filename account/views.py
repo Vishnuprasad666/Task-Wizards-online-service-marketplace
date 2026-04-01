@@ -6,7 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 
 from account.models import User, BuyerProfile, SellerProfile
-from account.forms import UserForm, LoginForm, BuyerProfileForm, SellerProfileForm, OTPForm, ForgotPasswordForm, ResetPasswordForm
+from account.forms import UserForm, LoginForm, BuyerProfileForm, SellerProfileForm, OTPForm, ForgotPasswordForm, ResetPasswordForm, UserUpdateForm
 from marketplace.models import Category, Service
 
 # Create your views here.
@@ -175,6 +175,23 @@ class BuyerProfileUpdateView(LoginRequiredMixin, BuyerRequiredMixin, UpdateView)
     
     def get_object(self):
         return self.request.user.buyer_profile
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "user_form" not in context:
+            context["user_form"] = UserUpdateForm(instance=self.request.user)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        profile_form = self.get_form()
+        user_form = UserUpdateForm(request.POST, instance=request.user)
+
+        if profile_form.is_valid() and user_form.is_valid():
+            user_form.save()
+            return self.form_valid(profile_form)
+        else:
+            return self.render_to_response(self.get_context_data(form=profile_form, user_form=user_form))
     
 class SellerProfileUpdateView(LoginRequiredMixin, SellerRequiredMixin, UpdateView):
     model = SellerProfile
@@ -184,6 +201,23 @@ class SellerProfileUpdateView(LoginRequiredMixin, SellerRequiredMixin, UpdateVie
     
     def get_object(self):
         return self.request.user.seller_profile
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "user_form" not in context:
+            context["user_form"] = UserUpdateForm(instance=self.request.user)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        profile_form = self.get_form()
+        user_form = UserUpdateForm(request.POST, instance=request.user)
+
+        if profile_form.is_valid() and user_form.is_valid():
+            user_form.save()
+            return self.form_valid(profile_form)
+        else:
+            return self.render_to_response(self.get_context_data(form=profile_form, user_form=user_form))
     
 class LogoutView(View):
     def get(self, request):
