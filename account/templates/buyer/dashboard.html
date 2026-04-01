@@ -15,7 +15,6 @@
                 </div>
                 <div class="flex gap-4">
                     <a href="{% url 'marketplace:service_list' %}" class="px-6 py-3 bg-cyan-500 text-black font-bold rounded-xl hover:bg-cyan-400 transition-all" style="box-shadow: 0 0 20px rgba(6,182,212,0.25)">Browse Services</a>
-                    <a href="{% url 'buyer_profile_edit' %}" class="px-6 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold rounded-xl hover:bg-zinc-700 hover:text-white transition-all">Edit Profile</a>
                 </div>
             </div>
 
@@ -156,9 +155,9 @@
                                                     <div class="flex gap-4">
                                                         {% for i in "12345" %}
                                                         <label class="cursor-pointer">
-                                                            <input type="radio" name="rating" value="{{ i }}" class="sr-only peer" required>
-                                                            <div class="w-10 h-10 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-500 peer-checked:bg-amber-500/20 peer-checked:text-amber-400 peer-checked:border-amber-500/30 hover:bg-zinc-700 transition-all font-bold">{{ i }}</div>
-                                                        </label>
+                                                                <input type="radio" name="rating" value="{{ i }}" class="sr-only peer" required>
+                                                                <div class="w-10 h-10 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-500 peer-checked:bg-amber-500/20 peer-checked:text-amber-400 peer-checked:border-amber-500/30 hover:bg-zinc-700 transition-all font-bold">{{ i }}</div>
+                                                            </label>
                                                         {% endfor %}
                                                     </div>
                                                 </div>

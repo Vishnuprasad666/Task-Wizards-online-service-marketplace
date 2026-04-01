@@ -35,6 +35,16 @@ class UserForm(UserCreationForm):
         self.fields["password1"].widget.attrs.update({"class": "form-control","placeholder": "Enter Password"})
         self.fields["password2"].widget.attrs.update({"class": "form-control","placeholder": "Confirm Password"})
         
+    def clean_phone(self):
+        phone = self.cleaned_data.get("phone")
+        if not phone.isdigit():
+            raise forms.ValidationError("Phone number must contain only digits")
+        if len(phone) != 10:
+            raise forms.ValidationError("Phone number must be exactly 10 digits")
+        if phone[0] not in "6789":
+            raise forms.ValidationError("Phone number must start with 6, 7, 8, or 9")
+        return phone
+
     def clean_email(self):
         email = self.cleaned_data.get("email")
         if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
@@ -52,8 +62,14 @@ class OTPForm(forms.Form):
 # -------------------------
 
 class LoginForm(forms.Form):
-    username = forms.CharField(max_length=100,widget=forms.TextInput(attrs={"class": "form-control","placeholder": "Enter Username or Email"}))
-    password = forms.CharField(max_length=100,widget=forms.PasswordInput(attrs={"class": "form-control","placeholder": "Enter Password"}))
+    username = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Enter Username or Email"})
+    )
+    password = forms.CharField(
+        max_length=100,
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Enter Password"})
+    )
 
 
 # -------------------------

@@ -42,6 +42,9 @@
                             <i class="fa-regular fa-user"></i>
                         </div>
                         {{ form.username }}
+                        {% if form.username.errors %}
+                        <p class="text-xs text-red-500 mt-1 pl-2 font-medium">{{ form.username.errors.0 }}</p>
+                        {% endif %}
                         <script>
                             document.getElementById('{{ form.username.id_for_label }}').classList.add('bg-zinc-800', 'border', 'border-zinc-700', 'text-white', 'text-sm', 'rounded-xl', 'focus:ring-cyan-500', 'focus:border-cyan-500', 'block', 'w-full', 'p-3', 'transition', 'duration-200', 'outline-none', 'pl-11', 'placeholder-zinc-600');
                             document.getElementById('{{ form.username.id_for_label }}').placeholder = 'Enter your username';
@@ -56,6 +59,9 @@
                             <i class="fa-solid fa-lock"></i>
                         </div>
                         {{ form.password }}
+                        {% if form.password.errors %}
+                        <p class="text-xs text-red-500 mt-1 pl-2 font-medium">{{ form.password.errors.0 }}</p>
+                        {% endif %}
                         <script>
                             document.getElementById('{{ form.password.id_for_label }}').classList.add('bg-zinc-800', 'border', 'border-zinc-700', 'text-white', 'text-sm', 'rounded-xl', 'focus:ring-cyan-500', 'focus:border-cyan-500', 'block', 'w-full', 'p-3', 'transition', 'duration-200', 'outline-none', 'pl-11', 'placeholder-zinc-600');
                             document.getElementById('{{ form.password.id_for_label }}').placeholder = '••••••••';
