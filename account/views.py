@@ -125,15 +125,21 @@ class LoginView(FormView):
     def form_valid(self, form):
         username = form.cleaned_data["username"]
         password = form.cleaned_data["password"]
-        user = authenticate(self.request,username=username,password=password)
-        if user and user.is_verified:
-            login(self.request, user)
-            if user.role == "Buyer":
-                return redirect("buyer_dashboard")
-            elif user.role == "Seller":
-                return redirect("seller_dashboard")
-        messages.error(self.request,"Invalid credentials or account not verified")
-        return redirect("login")
+        user = authenticate(self.request, username=username, password=password)
+        
+        if user:
+            if user.is_verified:
+                login(self.request, user)
+                if user.role == "Buyer":
+                    return redirect("buyer_dashboard")
+                elif user.role == "Seller":
+                    return redirect("seller_dashboard")
+            else:
+                form.add_error(None, "Your account is not verified. Please verify your OTP.")
+                return self.form_invalid(form)
+        else:
+            form.add_error(None, "Invalid username or password.")
+            return self.form_invalid(form)
 
 class BuyerDashboardView(LoginRequiredMixin, BuyerRequiredMixin, TemplateView):
     template_name = "buyer/dashboard.html"
