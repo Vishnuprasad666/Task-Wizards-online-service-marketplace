@@ -1,0 +1,106 @@
+{% extends "account/base.html" %}
+
+{% block title %}Complete Your Profile | Task Wizards{% endblock %}
+
+{% block extra_head %}
+<style>
+    .role-card {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+    }
+    .role-card:hover {
+        transform: translateY(-8px);
+        border-color: #06b6d4 !important;
+        box-shadow: 0 20px 40px -12px rgba(6, 182, 212, 0.25);
+    }
+    .role-card.active {
+        background-color: rgba(6, 182, 212, 0.1) !important;
+        border-color: #06b6d4 !important;
+        box-shadow: 0 0 0 2px #06b6d4;
+    }
+    .role-icon {
+        transition: all 0.4s ease;
+    }
+    .role-card:hover .role-icon, .role-card.active .role-icon {
+        transform: scale(1.1);
+        color: #06b6d4;
+    }
+</style>
+{% endblock %}
+
+{% block auth_background %}
+<div class="absolute inset-0 z-0 overflow-hidden bg-zinc-950">
+    <div class="absolute -top-[10%] -right-[10%] w-[50%] h-[50%] rounded-full bg-cyan-500/10 blur-[120px]"></div>
+    <div class="absolute top-[30%] left-[5%] w-[30%] h-[40%] rounded-full bg-white/3 blur-[80px]"></div>
+    <div class="absolute bottom-[-20%] right-[20%] w-[60%] h-[40%] rounded-full bg-cyan-400/5 blur-[100px]"></div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="flex-grow flex items-center justify-center p-4 min-h-[calc(100vh-4rem)]">
+    <div class="bg-zinc-900/80 backdrop-blur-lg border border-zinc-700/60 shadow-2xl rounded-2xl w-full max-w-2xl p-8 sm:p-12 relative overflow-hidden my-8">
+        
+        <div class="absolute top-0 left-0 -mt-4 -ml-4 w-36 h-36 bg-cyan-500/15 rounded-full blur-[60px]"></div>
+        
+        <div class="relative z-10">
+            <div class="text-center mb-12">
+                <h1 class="text-3xl font-bold text-white tracking-tight">Choose Your Path</h1>
+                <p class="text-zinc-400 mt-3 text-sm font-medium">Welcome! How do you plan to use Task Wizards?</p>
+            </div>
+
+            <form method="POST" id="role-form" class="space-y-8">
+                {% csrf_token %}
+                <input type="hidden" name="role" id="selected-role" value="">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Buyer Option -->
+                    <div onclick="selectRole('Buyer')" id="card-Buyer" class="role-card group bg-zinc-800/40 border border-zinc-700/50 p-8 rounded-3xl text-center">
+                        <div class="w-20 h-20 bg-zinc-900 rounded-2xl flex items-center justify-center mx-auto mb-6 role-icon shadow-inner">
+                            <i class="fa-solid fa-cart-shopping text-3xl text-zinc-500"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">I want to hire</h3>
+                        <p class="text-zinc-400 text-sm leading-relaxed">I'm looking for professional services to get my tasks done.</p>
+                        <div class="mt-6 flex items-center justify-center text-cyan-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                            Select Customer <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+                        </div>
+                    </div>
+
+                    <!-- Seller Option -->
+                    <div onclick="selectRole('Seller')" id="card-Seller" class="role-card group bg-zinc-800/40 border border-zinc-700/50 p-8 rounded-3xl text-center">
+                        <div class="w-20 h-20 bg-zinc-900 rounded-2xl flex items-center justify-center mx-auto mb-6 role-icon shadow-inner">
+                            <i class="fa-solid fa-briefcase text-3xl text-zinc-500"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">I want to work</h3>
+                        <p class="text-zinc-400 text-sm leading-relaxed">I'm a professional offering my skills and services.</p>
+                        <div class="mt-6 flex items-center justify-center text-cyan-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                            Select Professional <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-6">
+                    <button type="submit" id="submit-btn" disabled class="w-full text-black bg-white hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300 font-bold rounded-xl text-sm px-5 py-4 text-center shadow-lg uppercase tracking-wider">
+                        Confirm Selection
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function selectRole(role) {
+        document.getElementById('selected-role').value = role;
+        
+        // Update UI
+        document.querySelectorAll('.role-card').forEach(card => card.classList.remove('active'));
+        document.getElementById('card-' + role).classList.add('active');
+        
+        // Enable button
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = false;
+        btn.classList.add('bg-cyan-500');
+        btn.classList.remove('bg-white');
+    }
+</script>
+{% endblock content %}
