@@ -30,6 +30,8 @@ class LandingPageView(View):
                 return redirect("buyer_dashboard")
             if request.user.role == "Seller":
                 return redirect("seller_dashboard")
+            if request.user.role == "Unassigned":
+                return redirect("role_selection")
         
         context = {
             "categories": Category.objects.all(),
@@ -62,7 +64,7 @@ class VerifyOTPView(FormView):
             return redirect('register')
         try:
             user = User.objects.get(id=user_id)
-        except user.DoesNotExist:
+        except User.DoesNotExist:
             return redirect('register')
         if user.otp == otp:
             user.is_verified = True
@@ -134,6 +136,8 @@ class LoginView(FormView):
                     return redirect("buyer_dashboard")
                 elif user.role == "Seller":
                     return redirect("seller_dashboard")
+                elif user.role == "Unassigned":
+                    return redirect("role_selection")
             else:
                 form.add_error(None, "Your account is not verified. Please verify your OTP.")
                 return self.form_invalid(form)
@@ -229,3 +233,26 @@ class AboutView(TemplateView):
 
 class HowItWorksView(TemplateView):
     template_name = 'account/how_it_works.html'
+
+
+class RoleSelectionView(LoginRequiredMixin, View):
+    def get(self, request):
+        if request.user.role != "Unassigned":
+            if request.user.role == "Buyer":
+                return redirect("buyer_dashboard")
+            return redirect("seller_dashboard")
+        return render(request, "account/role_selection.html")
+
+    def post(self, request):
+        role = request.POST.get("role")
+        if role in ["Buyer", "Seller"]:
+            user = request.user
+            user.role = role
+            user.is_verified = True
+            user.save()
+            
+            if role == "Buyer":
+                return redirect("buyer_dashboard")
+            else:
+                return redirect("seller_dashboard")
+        return redirect("role_selection")

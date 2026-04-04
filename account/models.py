@@ -10,10 +10,11 @@ class User(AbstractUser):
     ROLE_CHOICES = (
         ("Buyer", "Buyer"),
         ("Seller", "Seller"),
+        ("Unassigned", "Unassigned"),
     )
     email = models.EmailField(unique=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="Buyer")
-    phone = models.CharField(max_length=15)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="Unassigned")
+    phone = models.CharField(max_length=15, blank=True, null=True)
     location = models.CharField(max_length=100, blank=True)
     linkedin_profile = models.URLField(blank=True, null=True)
     twitter_profile = models.URLField(blank=True, null=True)
@@ -78,11 +79,7 @@ from django.dispatch import receiver
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-
-    if created:
-
-        if instance.role == "Buyer":
-            BuyerProfile.objects.create(owner=instance)
-
-        elif instance.role == "Seller":
-            SellerProfile.objects.create(owner=instance)
+    if instance.role == "Buyer":
+        BuyerProfile.objects.get_or_create(owner=instance)
+    elif instance.role == "Seller":
+        SellerProfile.objects.get_or_create(owner=instance)
