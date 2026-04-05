@@ -19,4 +19,5 @@ urlpatterns = [
     path("about/", AboutView.as_view(), name="about"),
     path("how-it-works/", HowItWorksView.as_view(), name="how_it_works"),
     path("role-selection/", RoleSelectionView.as_view(), name="role_selection"),
+    path("toggle-mode/", ToggleModeView.as_view(), name="toggle_mode"),
 ]

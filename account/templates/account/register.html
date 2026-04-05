@@ -74,19 +74,9 @@
                     <i class="fa-solid fa-user-plus text-2xl"></i>
                 </div>
                 <h1 class="text-3xl font-bold text-white tracking-tight">Create Account</h1>
-                <p class="text-zinc-400 mt-2 text-sm font-medium">Select your account type to get started.</p>
+                <p class="text-zinc-400 mt-2 text-sm font-medium">Enter your details to get started.</p>
             </div>
 
-            <!-- Custom Role Toggle -->
-            <div class="flex p-1 bg-zinc-800/50 rounded-2xl mb-8 border border-zinc-700/50 relative w-full h-12">
-                <div id="toggle-slider" class="absolute h-[calc(100%-8px)] w-[calc(50%-4px)] bg-white rounded-xl transition-all duration-300 ease-out z-0 shadow-lg" style="left: 4px; top: 4px;"></div>
-                <button type="button" onclick="setRole('Buyer')" class="relative z-10 w-1/2 flex items-center justify-center text-sm font-bold transition-colors duration-300 text-black" id="btn-buyer">
-                    Customer
-                </button>
-                <button type="button" onclick="setRole('Seller')" class="relative z-10 w-1/2 flex items-center justify-center text-sm font-bold transition-colors duration-300 text-zinc-400" id="btn-seller">
-                    Professional
-                </button>
-            </div>
 
             <form method="POST" action="{% url 'register' %}" class="space-y-5">
                 {% csrf_token %}
@@ -99,8 +89,7 @@
 
                 <div class="space-y-6">
                     {% for field in form %}
-                    <div class="{% if field.name == 'role' %}hidden{% endif %} space-y-2">
-                        {% if field.name != 'role' %}
+                    <div class="space-y-2">
                         <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-zinc-300 ml-1">
                             {{ field.label }}
                         </label>
@@ -139,9 +128,6 @@
                                 }
                             })();
                         </script>
-                        {% else %}
-                        {{ field }}
-                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
@@ -186,39 +172,7 @@
                     }
                 }
 
-                function setRole(role) {
-                    const roleSelect = document.querySelector('select[name="role"]');
-                    const slider = document.getElementById('toggle-slider');
-                    const btnBuyer = document.getElementById('btn-buyer');
-                    const btnSeller = document.getElementById('btn-seller');
-
-                    if (roleSelect) {
-                        roleSelect.value = role;
-                    }
-
-                    if (role === 'Buyer') {
-                        slider.style.left = '4px';
-                        btnBuyer.classList.remove('text-zinc-400');
-                        btnBuyer.classList.add('text-black');
-                        btnSeller.classList.remove('text-black');
-                        btnSeller.classList.add('text-zinc-400');
-                    } else {
-                        slider.style.left = 'calc(50% - 0px)';
-                        btnSeller.classList.remove('text-zinc-400');
-                        btnSeller.classList.add('text-black');
-                        btnBuyer.classList.remove('text-black');
-                        btnBuyer.classList.add('text-zinc-400');
-                    }
-                }
-
                 document.addEventListener('DOMContentLoaded', function() {
-                    // Initialize if form has existing value
-                    const roleSelect = document.querySelector('select[name="role"]');
-                    if (roleSelect && roleSelect.value) {
-                        setRole(roleSelect.value);
-                    } else if (roleSelect) {
-                        roleSelect.value = 'Buyer'; // Default
-                    }
 
                     const phoneInput = document.querySelector('input[name="phone"]');
                     const pass1 = document.querySelector('input[name="password1"]');

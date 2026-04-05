@@ -21,18 +21,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-=hlrwgr@hh*8-w$vce&7!n8fa2%0m_&)t9nbdns6gc0yh8x_s='
+SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = []
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587 # Use 587 for TLS or 465 for SSL
-EMAIL_HOST_USER = "vishnumuraleedharan03@gmail.com"
-EMAIL_HOST_PASSWORD = "oyrzcheljosngypy" # Use an app-specific password, not your main password
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD") # Use an app-specific password, not your main password
 EMAIL_USE_TLS = True # Set to True for port 587
 EMAIL_USE_SSL = False # Set to True for port 465
 
@@ -151,6 +151,9 @@ AUTHENTICATION_BACKENDS=[
 RAZORPAY_KEY_ID = config("RAZORPAY_KEY_ID", default="")
 RAZORPAY_KEY_SECRET = config("RAZORPAY_KEY_SECRET", default="")
 
+# Site URL for email links
+SITE_URL = config("SITE_URL", default="http://127.0.0.1:8000")
+
 # Django Allauth Configuration
 SITE_ID = 1
 
@@ -172,4 +175,4 @@ SOCIALACCOUNT_PROVIDERS = {
         'OAUTH_PKCE_ENABLED': True,
     }
 }
-
+

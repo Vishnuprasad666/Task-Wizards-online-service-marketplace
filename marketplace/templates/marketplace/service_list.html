@@ -67,23 +67,34 @@
                 </form>
 
                 <!-- Delivery Time -->
-                <div class="space-y-4 pt-6 border-t border-zinc-800">
-                    <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest px-2">Delivery Time</h3>
+                <form action="" method="GET" id="delivery-form" class="space-y-4 pt-6 border-t border-zinc-800">
+                    {% if request.GET.category %}<input type="hidden" name="category" value="{{ request.GET.category }}">{% endif %}
+                    {% if request.GET.search %}<input type="hidden" name="search" value="{{ request.GET.search }}">{% endif %}
+                    {% if request.GET.min_price %}<input type="hidden" name="min_price" value="{{ request.GET.min_price }}">{% endif %}
+                    {% if request.GET.max_price %}<input type="hidden" name="max_price" value="{{ request.GET.max_price }}">{% endif %}
+                    {% if request.GET.sort %}<input type="hidden" name="sort" value="{{ request.GET.sort }}">{% endif %}
+
+                    <div class="flex items-center justify-between px-2">
+                        <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest">Delivery Time</h3>
+                        {% if request.GET.delivery_time %}
+                        <a href="?{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}{% endif %}" class="text-[10px] font-bold text-cyan-500 hover:text-cyan-400 uppercase tracking-wider transition-colors">Clear</a>
+                        {% endif %}
+                    </div>
                     <div class="space-y-2 px-2">
                         <label class="flex items-center gap-3 cursor-pointer group">
-                            <input type="checkbox" class="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-cyan-500 focus:ring-cyan-500">
-                            <span class="text-sm text-zinc-400 group-hover:text-white transition-colors">Express 24H</span>
+                            <input type="radio" name="delivery_time" value="1" onchange="this.form.submit()" {% if request.GET.delivery_time == '1' %}checked{% endif %} class="w-4 h-4 border-zinc-700 bg-zinc-800 text-cyan-500 focus:ring-cyan-500 accent-cyan-500">
+                            <span class="text-sm {% if request.GET.delivery_time == '1' %}text-cyan-400 font-bold{% else %}text-zinc-400{% endif %} group-hover:text-white transition-colors">Express 24H</span>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer group">
-                            <input type="checkbox" class="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-cyan-500 focus:ring-cyan-500">
-                            <span class="text-sm text-zinc-400 group-hover:text-white transition-colors">Up to 3 days</span>
+                            <input type="radio" name="delivery_time" value="3" onchange="this.form.submit()" {% if request.GET.delivery_time == '3' %}checked{% endif %} class="w-4 h-4 border-zinc-700 bg-zinc-800 text-cyan-500 focus:ring-cyan-500 accent-cyan-500">
+                            <span class="text-sm {% if request.GET.delivery_time == '3' %}text-cyan-400 font-bold{% else %}text-zinc-400{% endif %} group-hover:text-white transition-colors">Up to 3 days</span>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer group">
-                            <input type="checkbox" class="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-cyan-500 focus:ring-cyan-500">
-                            <span class="text-sm text-zinc-400 group-hover:text-white transition-colors">Up to 7 days</span>
+                            <input type="radio" name="delivery_time" value="7" onchange="this.form.submit()" {% if request.GET.delivery_time == '7' %}checked{% endif %} class="w-4 h-4 border-zinc-700 bg-zinc-800 text-cyan-500 focus:ring-cyan-500 accent-cyan-500">
+                            <span class="text-sm {% if request.GET.delivery_time == '7' %}text-cyan-400 font-bold{% else %}text-zinc-400{% endif %} group-hover:text-white transition-colors">Up to 7 days</span>
                         </label>
                     </div>
-                </div>
+                </form>
             </aside>
 
             <!-- Main Listing Area -->
@@ -136,7 +147,7 @@
                     {% for service in services %}
                     <div class="group bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden hover:border-zinc-600 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col h-full relative">
                         <!-- Favourite Toggle -->
-                        {% if user.is_authenticated and user.role == 'Buyer' %}
+                        {% if user.is_authenticated and user.is_buyer %}
                         <form action="{% url 'marketplace:toggle_favourite' service.pk %}" method="POST" class="absolute top-4 right-4 z-20">
                             {% csrf_token %}
                             <button type="submit" class="w-10 h-10 rounded-xl bg-zinc-900/90 backdrop-blur-md shadow-sm flex items-center justify-center text-zinc-500 hover:text-rose-500 transition-all group/heart border border-zinc-700">

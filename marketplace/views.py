@@ -54,6 +54,11 @@ class ServiceListView(ListView):
             queryset = queryset.annotate(num_orders=Count('orders', filter=Q(orders__status='Completed'))).order_by("-num_orders")
         else:
             queryset = queryset.order_by("-seller__seller_profile__rating", "-created_at")
+
+        # Delivery time filter
+        delivery_time = self.request.GET.get("delivery_time")
+        if delivery_time and delivery_time.isdigit():
+            queryset = queryset.filter(delivery_time__lte=int(delivery_time))
             
         return queryset
 
@@ -234,23 +239,14 @@ class OrderCompleteView(LoginRequiredMixin, BuyerRequiredMixin, View):
     def post(self, request, pk):
         order = get_object_or_404(Order, pk=pk, buyer=request.user, status="Delivered")
         order.status = "Completed"
-        order.save()
-        
-        # Update seller stats
-        seller_profile = order.service.seller.seller_profile
-        seller_profile.orders_completed += 1
-        seller_profile.save()
+        order.save()  # This triggers the post_save signal which recalculates orders_completed
         
         # Create a Review
         rating = request.POST.get("rating")
         comment = request.POST.get("comment")
         if rating:
             Review.objects.create(order=order, rating=rating, comment=comment)
-            # Update average rating
-            reviews = Review.objects.filter(order__service__seller=order.service.seller)
-            avg_rating = sum(r.rating for r in reviews) / reviews.count()
-            seller_profile.rating = avg_rating
-            seller_profile.save()
+            # Note: rating average is updated by the post_save signal on Review
             
         # Notify seller about completion
         send_notification(
@@ -291,7 +287,7 @@ class OrderDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         # Ensure only the buyer or the seller of the order can view it
-        if self.request.user.role == "Buyer":
+        if self.request.session.get('user_mode') != 'seller':
             return Order.objects.filter(buyer=self.request.user)
         else:
             return Order.objects.filter(service__seller=self.request.user)
@@ -299,7 +295,7 @@ class OrderDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Add messages related to this order or common chat history
-        other_user = self.object.service.seller if self.request.user.role == "Buyer" else self.object.buyer
+        other_user = self.object.service.seller if self.request.session.get('user_mode') != 'seller' else self.object.buyer
         context["chat_user"] = other_user
         return context
 

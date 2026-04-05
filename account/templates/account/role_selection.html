@@ -21,9 +21,34 @@
     .role-icon {
         transition: all 0.4s ease;
     }
-    .role-card:hover .role-icon, .role-card.active .role-icon {
+    .role-card:hover .role-icon,
+    .role-card.active .role-icon {
         transform: scale(1.1);
         color: #06b6d4;
+    }
+    .check-box {
+        width: 1.25rem;
+        height: 1.25rem;
+        border: 2px solid #52525b;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+    .check-box.checked {
+        background-color: #06b6d4;
+        border-color: #06b6d4;
+    }
+    .check-box .check-icon {
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        font-size: 0.6rem;
+        color: white;
+    }
+    .check-box.checked .check-icon {
+        opacity: 1;
     }
 </style>
 {% endblock %}
@@ -39,9 +64,9 @@
 {% block content %}
 <div class="flex-grow flex items-center justify-center p-4 min-h-[calc(100vh-4rem)]">
     <div class="bg-zinc-900/80 backdrop-blur-lg border border-zinc-700/60 shadow-2xl rounded-2xl w-full max-w-2xl p-8 sm:p-12 relative overflow-hidden my-8">
-        
+
         <div class="absolute top-0 left-0 -mt-4 -ml-4 w-36 h-36 bg-cyan-500/15 rounded-full blur-[60px]"></div>
-        
+
         <div class="relative z-10">
             <div class="text-center mb-12">
                 <h1 class="text-3xl font-bold text-white tracking-tight">Choose Your Path</h1>
@@ -50,37 +75,46 @@
 
             <form method="POST" id="role-form" class="space-y-8">
                 {% csrf_token %}
-                <input type="hidden" name="role" id="selected-role" value="">
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Buyer Option -->
-                    <div onclick="selectRole('Buyer')" id="card-Buyer" class="role-card group bg-zinc-800/40 border border-zinc-700/50 p-8 rounded-3xl text-center">
-                        <div class="w-20 h-20 bg-zinc-900 rounded-2xl flex items-center justify-center mx-auto mb-6 role-icon shadow-inner">
-                            <i class="fa-solid fa-cart-shopping text-3xl text-zinc-500"></i>
+
+                    <!-- Client Option -->
+                    <div class="role-card bg-zinc-800/40 border border-zinc-700/50 p-8 rounded-3xl text-center relative"
+                         id="card-client" onclick="toggleCard('client')">
+                        <input type="checkbox" name="is_client" id="cb-client" class="sr-only">
+                        <div class="check-box absolute top-4 right-4" id="check-client">
+                            <i class="fa-solid fa-check check-icon"></i>
                         </div>
-                        <h3 class="text-xl font-bold text-white mb-2">I want to hire</h3>
-                        <p class="text-zinc-400 text-sm leading-relaxed">I'm looking for professional services to get my tasks done.</p>
-                        <div class="mt-6 flex items-center justify-center text-cyan-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                            Select Customer <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+                        <div class="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-zinc-700/50">
+                            <i class="fa-solid fa-magnifying-glass text-3xl text-zinc-400 role-icon"></i>
                         </div>
+                        <h3 class="text-xl font-bold text-white mb-2">I am a client</h3>
+                        <p class="text-sm text-zinc-500">I want to hire talented freelancers for my projects.</p>
                     </div>
 
-                    <!-- Seller Option -->
-                    <div onclick="selectRole('Seller')" id="card-Seller" class="role-card group bg-zinc-800/40 border border-zinc-700/50 p-8 rounded-3xl text-center">
-                        <div class="w-20 h-20 bg-zinc-900 rounded-2xl flex items-center justify-center mx-auto mb-6 role-icon shadow-inner">
-                            <i class="fa-solid fa-briefcase text-3xl text-zinc-500"></i>
+                    <!-- Freelancer Option -->
+                    <div class="role-card bg-zinc-800/40 border border-zinc-700/50 p-8 rounded-3xl text-center relative"
+                         id="card-freelancer" onclick="toggleCard('freelancer')">
+                        <input type="checkbox" name="is_freelancer" id="cb-freelancer" class="sr-only">
+                        <div class="check-box absolute top-4 right-4" id="check-freelancer">
+                            <i class="fa-solid fa-check check-icon"></i>
                         </div>
-                        <h3 class="text-xl font-bold text-white mb-2">I want to work</h3>
-                        <p class="text-zinc-400 text-sm leading-relaxed">I'm a professional offering my skills and services.</p>
-                        <div class="mt-6 flex items-center justify-center text-cyan-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                            Select Professional <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+                        <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                            <div class="absolute inset-0 bg-green-500 rounded-full"></div>
+                            <div class="absolute inset-x-0 bottom-0 h-1/2 bg-green-600 rounded-b-full"></div>
+                            <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-zinc-900 rounded-full flex items-center justify-center">
+                                <div class="w-4 h-4 bg-white rounded-full"></div>
+                            </div>
                         </div>
+                        <h3 class="text-xl font-bold text-white mb-2">I'm a freelancer</h3>
+                        <p class="text-sm text-zinc-500">I want to offer my skills and earn on my own terms.</p>
                     </div>
                 </div>
 
                 <div class="pt-6">
-                    <button type="submit" id="submit-btn" disabled class="w-full text-black bg-white hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300 font-bold rounded-xl text-sm px-5 py-4 text-center shadow-lg uppercase tracking-wider">
-                        Confirm Selection
+                    <button type="submit" id="submit-btn" disabled
+                        class="w-full text-zinc-400 bg-zinc-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 font-bold rounded-xl text-sm px-5 py-4 text-center shadow-lg tracking-wider">
+                        Next
                     </button>
                 </div>
             </form>
@@ -89,18 +123,40 @@
 </div>
 
 <script>
-    function selectRole(role) {
-        document.getElementById('selected-role').value = role;
-        
-        // Update UI
-        document.querySelectorAll('.role-card').forEach(card => card.classList.remove('active'));
-        document.getElementById('card-' + role).classList.add('active');
-        
-        // Enable button
+    function toggleCard(role) {
+        const card = document.getElementById('card-' + role);
+        const checkbox = document.getElementById('cb-' + role);
+        const checkBox = document.getElementById('check-' + role);
+
+        // Toggle the hidden checkbox
+        checkbox.checked = !checkbox.checked;
+
+        // Toggle visual active state on the card and custom checkbox
+        if (checkbox.checked) {
+            card.classList.add('active');
+            checkBox.classList.add('checked');
+        } else {
+            card.classList.remove('active');
+            checkBox.classList.remove('checked');
+        }
+
+        updateButton();
+    }
+
+    function updateButton() {
+        const clientChecked = document.getElementById('cb-client').checked;
+        const freelancerChecked = document.getElementById('cb-freelancer').checked;
         const btn = document.getElementById('submit-btn');
-        btn.disabled = false;
-        btn.classList.add('bg-cyan-500');
-        btn.classList.remove('bg-white');
+
+        if (clientChecked || freelancerChecked) {
+            btn.disabled = false;
+            btn.classList.add('bg-white', 'text-black');
+            btn.classList.remove('bg-zinc-700', 'text-zinc-400', 'disabled:opacity-60');
+        } else {
+            btn.disabled = true;
+            btn.classList.remove('bg-white', 'text-black');
+            btn.classList.add('bg-zinc-700', 'text-zinc-400');
+        }
     }
 </script>
 {% endblock content %}
