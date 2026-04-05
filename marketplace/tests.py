@@ -11,11 +11,11 @@ class MarketplaceFlowTest(TestCase):
         self.category = Category.objects.create(name="Design")
         
         # Create Seller
-        self.seller = User.objects.create_user(username="seller", password="password", role="Seller", email="seller@example.com", is_verified=True)
+        self.seller = User.objects.create_user(username="seller", password="password", is_seller=True, email="seller@example.com", is_verified=True)
         # Profile is created via signals
         
         # Create Buyer
-        self.buyer = User.objects.create_user(username="buyer", password="password", role="Buyer", email="buyer@example.com", is_verified=True)
+        self.buyer = User.objects.create_user(username="buyer", password="password", is_buyer=True, email="buyer@example.com", is_verified=True)
         
         # Create Service
         self.service = Service.objects.create(
@@ -50,7 +50,7 @@ class MarketplaceFlowTest(TestCase):
         self.client.logout()
 
         # Another user cannot access (if we had another user)
-        other_user = User.objects.create_user(username="other", password="password", role="Buyer", email="other@example.com", is_verified=True)
+        other_user = User.objects.create_user(username="other", password="password", is_buyer=True, email="other@example.com", is_verified=True)
         self.client.login(username="other", password="password")
         response = self.client.get(reverse("marketplace:order_detail", kwargs={"pk": self.order.pk}))
         self.assertEqual(response.status_code, 404) # get_queryset filters them out

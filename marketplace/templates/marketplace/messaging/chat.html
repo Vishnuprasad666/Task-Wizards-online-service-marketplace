@@ -27,7 +27,7 @@
                             <div class="flex justify-between items-baseline mb-1">
                                 <h3 class="font-bold truncate {% if contact == other_user %}text-cyan-400{% else %}text-zinc-300{% endif %}">{{ contact.username }}</h3>
                             </div>
-                            <span class="px-2 py-0.5 rounded-md bg-zinc-800 border border-zinc-700 text-[9px] font-black uppercase tracking-widest text-zinc-600">{{ contact.role }}</span>
+                            <span class="px-2 py-0.5 rounded-md bg-zinc-800 border border-zinc-700 text-[9px] font-black uppercase tracking-widest text-zinc-600">{% if contact.is_seller and contact.is_buyer %}Client & Freelancer{% elif contact.is_seller %}Freelancer{% elif contact.is_buyer %}Client{% else %}User{% endif %}</span>
                         </div>
                     </a>
                     {% endfor %}
@@ -53,7 +53,7 @@
                             <div class="flex items-center gap-2">
                                 <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Active Now</span>
                                 <span class="text-[10px] text-zinc-700">•</span>
-                                <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{{ other_user.role }}</span>
+                                <span class="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{% if other_user.is_seller and other_user.is_buyer %}Client & Freelancer{% elif other_user.is_seller %}Freelancer{% elif other_user.is_buyer %}Client{% else %}User{% endif %}</span>
                             </div>
                         </div>
                     </div>

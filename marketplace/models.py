@@ -168,10 +168,7 @@ def send_email_in_background(user, message, link):
     from_email = settings.EMAIL_HOST_USER
     to = [user.email]
     
-    # Context for the template
-    # Since we don't have request context here, we construct a generic site_url 
-    # (In production, you'd pull this from settings.SITE_URL)
-    site_url = "http://127.0.0.1:8000"
+    site_url = getattr(settings, 'SITE_URL', 'http://127.0.0.1:8000')
     
     context = {
         "user": user,

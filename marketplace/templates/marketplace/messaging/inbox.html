@@ -38,7 +38,7 @@
                                 <h3 class="font-bold text-zinc-200 truncate group-hover:text-white transition-colors">{{ contact.username }}</h3>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span class="px-2 py-0.5 rounded-md bg-zinc-800 border border-zinc-700 text-[10px] font-black uppercase tracking-widest text-zinc-500">{{ contact.role }}</span>
+                                <span class="px-2 py-0.5 rounded-md bg-zinc-800 border border-zinc-700 text-[10px] font-black uppercase tracking-widest text-zinc-500">{% if contact.is_seller and contact.is_buyer %}Client & Freelancer{% elif contact.is_seller %}Freelancer{% elif contact.is_buyer %}Client{% else %}User{% endif %}</span>
                             </div>
                         </div>
                     </a>

@@ -14,6 +14,8 @@ class User(AbstractUser):
     )
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="Unassigned")
+    is_seller = models.BooleanField(default=False)
+    is_buyer = models.BooleanField(default=False)
     phone = models.CharField(max_length=15, blank=True, null=True)
     location = models.CharField(max_length=100, blank=True)
     linkedin_profile = models.URLField(blank=True, null=True)
@@ -79,7 +81,17 @@ from django.dispatch import receiver
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    if instance.role == "Buyer":
+    if instance.is_buyer:
         BuyerProfile.objects.get_or_create(owner=instance)
-    elif instance.role == "Seller":
+    if instance.is_seller:
         SellerProfile.objects.get_or_create(owner=instance)
+    
+    # Backward compatibility for 'role' field during transition
+    if not instance.is_buyer and not instance.is_seller:
+        if instance.role == "Buyer":
+            # Use update() instead of save() to avoid re-triggering this signal
+            User.objects.filter(pk=instance.pk).update(is_buyer=True)
+            BuyerProfile.objects.get_or_create(owner=instance)
+        elif instance.role == "Seller":
+            User.objects.filter(pk=instance.pk).update(is_seller=True)
+            SellerProfile.objects.get_or_create(owner=instance)

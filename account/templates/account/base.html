@@ -131,7 +131,13 @@
                             class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
                     </a>
                     <div class="h-6 w-px bg-zinc-700 mx-2 hidden sm:block"></div>
-                    <a href="{% if user.role == 'Buyer' %}{% url 'buyer_dashboard' %}{% else %}{% url 'seller_dashboard' %}{% endif %}"
+                    {% if user.is_buyer and user.is_seller %}
+                        <a href="{% url 'toggle_mode' %}" class="text-xs font-bold text-cyan-400 border border-cyan-500/50 rounded-full px-3 py-1 hover:bg-cyan-500/10 transition-colors">
+                            <i class="fa-solid fa-rotate mr-1"></i>
+                            {% if request.session.user_mode == 'seller' %}Switch to Client Dashboard{% else %}Switch to Freelancer Dashboard{% endif %}
+                        </a>
+                    {% endif %}
+                    <a href="{% if request.session.user_mode == 'seller' %}{% url 'seller_dashboard' %}{% else %}{% url 'buyer_dashboard' %}{% endif %}"
                         class="text-sm font-bold text-zinc-300 hover:text-cyan-400 transition-colors">Dashboard</a>
                     <a href="{% url 'logout' %}"
                         class="px-5 py-2.5 rounded-xl bg-zinc-800 text-zinc-300 text-sm font-bold hover:bg-zinc-700 transition-all border border-zinc-700">Logout</a>
@@ -165,7 +171,13 @@
                 {% if user.is_authenticated %}
                 <a href="{% url 'marketplace:notification_list' %}"
                     class="block text-base font-bold text-zinc-300 hover:text-cyan-400 transition-colors">Notifications</a>
-                <a href="{% if user.role == 'Buyer' %}{% url 'buyer_dashboard' %}{% else %}{% url 'seller_dashboard' %}{% endif %}"
+                {% if user.is_buyer and user.is_seller %}
+                <a href="{% url 'toggle_mode' %}"
+                    class="block text-base font-bold text-cyan-400 border border-cyan-500/50 rounded-lg px-4 py-2 hover:bg-cyan-500/10 transition-colors inline-block w-full text-center mb-2">
+                    <i class="fa-solid fa-rotate mr-2"></i> {% if request.session.user_mode == 'seller' %}Switch to Client Dashboard{% else %}Switch to Freelancer Dashboard{% endif %}
+                </a>
+                {% endif %}
+                <a href="{% if request.session.user_mode == 'seller' %}{% url 'seller_dashboard' %}{% else %}{% url 'buyer_dashboard' %}{% endif %}"
                     class="block text-base font-bold text-zinc-300 hover:text-cyan-400 transition-colors">Dashboard</a>
                 <a href="{% url 'logout' %}"
                     class="block text-base font-bold text-zinc-300 hover:text-cyan-400 transition-colors">Logout</a>

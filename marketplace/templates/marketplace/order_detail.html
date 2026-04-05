@@ -10,7 +10,7 @@
         <nav class="flex mb-8 text-sm font-medium text-zinc-600" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-1 md:space-x-3">
                 <li class="inline-flex items-center">
-                    <a href="{% if user.role == 'Buyer' %}{% url 'buyer_dashboard' %}{% else %}{% url 'seller_dashboard' %}{% endif %}" class="hover:text-cyan-400 transition-colors">Dashboard</a>
+                    <a href="{% if request.session.user_mode != 'seller' %}{% url 'buyer_dashboard' %}{% else %}{% url 'seller_dashboard' %}{% endif %}" class="hover:text-cyan-400 transition-colors">Dashboard</a>
                 </li>
                 <li>
                     <div class="flex items-center">
@@ -160,7 +160,7 @@
 
                 <!-- Action Buttons -->
                 <div class="pt-4">
-                    {% if user.role == 'Seller' %}
+                    {% if user == order.service.seller %}
                         {% if order.status == 'Paid' %}
                         <form action="{% url 'marketplace:order_start' order.pk %}" method="POST">
                             {% csrf_token %}
@@ -173,7 +173,7 @@
                             Submit Final Delivery
                         </button>
                         {% endif %}
-                    {% elif user.role == 'Buyer' %}
+                    {% elif user == order.buyer %}
                         {% if order.status == 'Delivered' %}
                         <div class="flex flex-col sm:flex-row gap-4">
                             <button onclick="document.getElementById('revision-modal-{{ order.id }}').classList.remove('hidden')" class="flex-grow py-6 bg-zinc-800 border border-zinc-700 text-zinc-300 font-black rounded-[2rem] hover:bg-zinc-700 transition-all text-lg">
@@ -202,16 +202,16 @@
                 <!-- Counterpart Profile Card -->
                 <div class="bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-800 shadow-xl text-center">
                     <p class="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-6 border-b border-zinc-800 pb-4">
-                        {% if user.role == 'Buyer' %}About the Seller{% else %}About the Client{% endif %}
+                        {% if user == order.buyer %}About the Seller{% else %}About the Client{% endif %}
                     </p>
                     <div class="relative inline-block mb-4">
-                        <img src="{% if user.role == 'Buyer' %}{{ order.service.seller.seller_profile.photo.url }}{% else %}{{ order.buyer.buyer_profile.photo.url }}{% endif %}" 
+                        <img src="{% if user == order.buyer %}{{ order.service.seller.seller_profile.photo.url }}{% else %}{{ order.buyer.buyer_profile.photo.url }}{% endif %}" 
                              class="w-24 h-24 rounded-full border-4 border-zinc-800 shadow-md">
                         <div class="absolute bottom-0 right-0 w-6 h-6 bg-emerald-500 rounded-full border-2 border-zinc-900"></div>
                     </div>
                     <div>
                         <h3 class="text-xl font-bold text-white">{{ chat_user.username }}</h3>
-                        {% if user.role == 'Buyer' %}
+                        {% if user == order.buyer %}
                         <p class="text-xs font-medium text-zinc-500 mt-1">
                             Top Rated Professional
                         </p>
@@ -247,7 +247,7 @@
 </div>
 
 <!-- Seller Delivery Modal -->
-{% if user.role == 'Seller' %}
+{% if user == order.service.seller %}
 <div id="deliver-modal-{{ order.id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
     <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8 max-w-lg w-full shadow-2xl space-y-6">
         <h3 class="text-2xl font-black text-white">Deliver Your Work</h3>

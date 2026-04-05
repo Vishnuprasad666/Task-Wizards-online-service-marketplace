@@ -16,7 +16,6 @@ class UserForm(UserCreationForm):
             "email",
             "phone",
             "username",
-            "role",
         ]
         
         widgets = {
@@ -26,8 +25,6 @@ class UserForm(UserCreationForm):
             "email": forms.EmailInput(attrs={"placeholder": "Enter Email","class": "form-control"}),
             "phone": forms.TextInput(attrs={"placeholder": "Enter Phone Number","class": "form-control"}),
             "username": forms.TextInput(attrs={"placeholder": "Enter Username","class": "form-control"}),
-            "role": forms.Select(attrs={"class": "form-control"}),
-            
         }
         
     def __init__(self, *args, **kwargs):

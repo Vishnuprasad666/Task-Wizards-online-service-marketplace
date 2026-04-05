@@ -13,25 +13,33 @@ from marketplace.models import Category, Service
 
 class BuyerRequiredMixin:
     def dispatch(self, request, *args, **kwargs):
-        if request.user.role != "Buyer":
-            return redirect("seller_dashboard")
+        if not request.user.is_buyer:
+            return redirect("role_selection")
         return super().dispatch(request, *args, **kwargs)
 
 class SellerRequiredMixin:
     def dispatch(self, request, *args, **kwargs):
-        if request.user.role != "Seller":
-            return redirect("buyer_dashboard")
+        if not request.user.is_seller:
+            return redirect("role_selection")
         return super().dispatch(request, *args, **kwargs)
 
 class LandingPageView(View):
     def get(self,request):
         if request.user.is_authenticated:
-            if request.user.role == "Buyer":
-                return redirect("buyer_dashboard")
-            if request.user.role == "Seller":
-                return redirect("seller_dashboard")
-            if request.user.role == "Unassigned":
+            if not request.user.is_buyer and not request.user.is_seller:
                 return redirect("role_selection")
+            
+            mode = request.session.get('user_mode')
+            if mode == 'seller' and request.user.is_seller:
+                return redirect("seller_dashboard")
+            elif mode == 'buyer' and request.user.is_buyer:
+                return redirect("buyer_dashboard")
+            
+            # Default fallback
+            if request.user.is_seller:
+                request.session['user_mode'] = 'seller'
+                return redirect("seller_dashboard")
+            return redirect("buyer_dashboard")
         
         context = {
             "categories": Category.objects.all(),
@@ -132,12 +140,24 @@ class LoginView(FormView):
         if user:
             if user.is_verified:
                 login(self.request, user)
-                if user.role == "Buyer":
-                    return redirect("buyer_dashboard")
-                elif user.role == "Seller":
-                    return redirect("seller_dashboard")
-                elif user.role == "Unassigned":
+                if not user.is_buyer and not user.is_seller:
                     return redirect("role_selection")
+                
+                # Set the session mode before any redirect
+                if user.is_seller:
+                    self.request.session['user_mode'] = 'seller'
+                else:
+                    self.request.session['user_mode'] = 'buyer'
+
+                # Respect ?next= redirect parameter (for @login_required protected pages)
+                next_url = self.request.GET.get('next') or self.request.POST.get('next')
+                if next_url:
+                    return redirect(next_url)
+
+                # Default dashboard redirect
+                if user.is_seller:
+                    return redirect("seller_dashboard")
+                return redirect("buyer_dashboard")
             else:
                 form.add_error(None, "Your account is not verified. Please verify your OTP.")
                 return self.form_invalid(form)
@@ -237,22 +257,38 @@ class HowItWorksView(TemplateView):
 
 class RoleSelectionView(LoginRequiredMixin, View):
     def get(self, request):
-        if request.user.role != "Unassigned":
-            if request.user.role == "Buyer":
-                return redirect("buyer_dashboard")
-            return redirect("seller_dashboard")
+        if request.user.is_buyer or request.user.is_seller:
+            if request.user.is_seller:
+                return redirect("seller_dashboard")
+            return redirect("buyer_dashboard")
         return render(request, "account/role_selection.html")
 
     def post(self, request):
-        role = request.POST.get("role")
-        if role in ["Buyer", "Seller"]:
+        is_client = request.POST.get("is_client") == "on"
+        is_freelancer = request.POST.get("is_freelancer") == "on"
+        
+        if is_client or is_freelancer:
             user = request.user
-            user.role = role
+            user.is_buyer = is_client
+            user.is_seller = is_freelancer
             user.is_verified = True
             user.save()
             
-            if role == "Buyer":
-                return redirect("buyer_dashboard")
-            else:
+            if is_freelancer:
+                request.session['user_mode'] = 'seller'
                 return redirect("seller_dashboard")
+            else:
+                request.session['user_mode'] = 'buyer'
+                return redirect("buyer_dashboard")
         return redirect("role_selection")
+
+class ToggleModeView(LoginRequiredMixin, View):
+    def get(self, request):
+        current_mode = request.session.get('user_mode', 'buyer')
+        if current_mode == 'seller' and request.user.is_buyer:
+            request.session['user_mode'] = 'buyer'
+            return redirect('buyer_dashboard')
+        elif current_mode == 'buyer' and request.user.is_seller:
+            request.session['user_mode'] = 'seller'
+            return redirect('seller_dashboard')
+        return redirect('landing_page')
