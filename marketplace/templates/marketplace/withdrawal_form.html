@@ -1,0 +1,47 @@
+{% extends "account/base.html" %}
+{% load static %}
+
+{% block title %}Withdraw Funds - Task Wizards{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center px-4">
+    <div class="max-w-md w-full bg-slate-900 border border-white/10 rounded-3xl p-10 shadow-2xl">
+        <h1 class="text-3xl font-black text-white mb-2 leading-tight">Withdraw Funds</h1>
+        <p class="text-slate-400 mb-8 text-sm">Submit a request to withdraw your earnings. Our team will review and process it within 3-5 business days.</p>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="space-y-2">
+                <label for="{{ form.amount.id_for_label }}" class="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Amount to Withdraw (INR)</label>
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <span class="text-slate-500 font-bold group-focus-within:text-indigo-500 transition-colors">₹</span>
+                    </div>
+                    <input type="number" name="{{ form.amount.name }}" id="{{ form.amount.id_for_label }}" step="0.01" required
+                           class="block w-full pl-10 pr-4 py-4 bg-slate-950/50 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+                           placeholder="0.00">
+                </div>
+                {% if form.amount.errors %}
+                <p class="text-red-500 text-xs pl-1">{{ form.amount.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="pt-4">
+                <button type="submit" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold hover:shadow-lg hover:shadow-indigo-500/20 transform active:scale-[0.98] transition-all duration-300">
+                    Request Payout
+                </button>
+            </div>
+        </form>
+
+        <div class="mt-8 pt-8 border-t border-white/5">
+            <a href="{% url 'seller_dashboard' %}" class="flex items-center justify-center text-sm font-semibold text-slate-400 hover:text-white transition-colors group">
+                <svg class="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

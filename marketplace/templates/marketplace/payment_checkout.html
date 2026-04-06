@@ -31,7 +31,7 @@
         "name": "Task Wizards",
         "description": "Payment for {{ service.title }}",
         "order_id": "{{ razorpay_order_id }}",
-        "callback_url": "{{ callback_url }}",
+        "callback_url": "{{ payment_callback_url|default:callback_url }}",
         "prefill": {
             "name": "{{ user.username }}",
             "email": "{{ user.email }}",

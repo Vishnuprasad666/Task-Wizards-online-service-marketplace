@@ -1,0 +1,47 @@
+{% extends "account/base.html" %}
+{% load static %}
+
+{% block title %}Forgot Username - Task Wizards{% endblock %}
+
+{% block content %}
+<div class="bg-zinc-950 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-zinc-900 p-10 rounded-[2.5rem] border border-zinc-800 shadow-2xl">
+        <div class="text-center">
+            <h2 class="mt-6 text-3xl font-black text-white tracking-tight">Forgot Username?</h2>
+            <p class="mt-2 text-sm text-zinc-500 font-medium">No worries! Enter your email and we'll send your username(s) to you.</p>
+        </div>
+        
+        <form class="mt-8 space-y-6" method="POST">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-semibold text-zinc-300">Email Address</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-zinc-500">
+                            <i class="fa-regular fa-envelope"></i>
+                        </div>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <p class="text-xs text-red-500 mt-1 pl-2 font-medium">{{ form.email.errors.0 }}</p>
+                        {% endif %}
+                        <script>
+                            document.getElementById('{{ form.email.id_for_label }}').classList.add('bg-zinc-800', 'border', 'border-zinc-700', 'text-white', 'text-sm', 'rounded-xl', 'focus:ring-cyan-500', 'focus:border-cyan-500', 'block', 'w-full', 'p-3', 'transition', 'duration-200', 'outline-none', 'pl-11', 'placeholder-zinc-600');
+                            document.getElementById('{{ form.email.id_for_label }}').placeholder = 'Enter your email';
+                        </script>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-black rounded-2xl text-black bg-cyan-500 hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-all shadow-lg shadow-cyan-500/20 uppercase tracking-widest">
+                    Send Recovery Email
+                </button>
+            </div>
+            
+            <div class="text-center">
+                <a href="{% url 'login' %}" class="text-xs font-bold text-zinc-500 hover:text-cyan-400 transition-colors uppercase tracking-widest">Back to Login</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

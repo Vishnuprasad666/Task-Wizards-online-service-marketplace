@@ -14,7 +14,7 @@
                 </div>
                 <div>
                     <p class="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-0.5">Response Rate</p>
-                    <p class="text-xl font-black text-white">98%</p>
+                    <p class="text-xl font-black text-white italic opacity-50">N/A</p>
                 </div>
             </div>
             <div class="bg-zinc-900 rounded-3xl p-6 border border-zinc-800 flex items-center gap-6">
@@ -23,7 +23,7 @@
                 </div>
                 <div>
                     <p class="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-0.5">On-time Delivery</p>
-                    <p class="text-xl font-black text-white">100%</p>
+                    <p class="text-xl font-black text-white italic opacity-50">N/A</p>
                 </div>
             </div>
             <div class="bg-zinc-900 rounded-3xl p-6 border border-zinc-800 flex items-center gap-6">
@@ -43,6 +43,14 @@
                 <h1 class="text-3xl font-black text-white tracking-tight">Seller Hub</h1>
                 <p class="text-zinc-500 mt-1 font-medium">Manage your gigs and track incoming orders.</p>
             </div>
+            
+            <!-- Search Form -->
+            <form method="GET" class="w-full md:w-80 relative group">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-cyan-500 transition-colors text-xs"></i>
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Search orders or buyers..." 
+                       class="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all placeholder-zinc-600 font-medium">
+            </form>
+
             <div class="flex gap-3">
                 <a href="{% url 'marketplace:seller_service_list' %}" class="px-5 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 text-sm font-bold rounded-xl hover:bg-zinc-700 hover:text-white transition-all">Manage Gigs</a>
                 <a href="{% url 'marketplace:service_create' %}" class="px-5 py-3 bg-cyan-500 text-black text-sm font-bold rounded-xl hover:bg-cyan-400 transition-all" style="box-shadow: 0 0 20px rgba(6,182,212,0.25)">Create New Gig</a>
@@ -110,6 +118,33 @@
                                     </tbody>
                                 </table>
                             </div>
+
+                            <!-- Pagination -->
+                            {% if orders.has_other_pages %}
+                            <div class="p-8 border-t border-zinc-800 flex items-center justify-center gap-2">
+                                {% if orders.has_previous %}
+                                    <a href="?page={{ orders.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="w-10 h-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white transition-all">
+                                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                                    </a>
+                                {% endif %}
+                                
+                                <div class="flex items-center gap-2 bg-zinc-800/50 p-1.5 rounded-2xl border border-zinc-700/50">
+                                    {% for i in orders.paginator.page_range %}
+                                        {% if orders.number == i %}
+                                            <span class="w-10 h-10 rounded-xl bg-cyan-500 text-black font-black text-xs flex items-center justify-center shadow-lg shadow-cyan-500/20">{{ i }}</span>
+                                        {% elif i > orders.number|add:'-3' and i < orders.number|add:'3' %}
+                                            <a href="?page={{ i }}{% if search_query %}&search={{ search_query }}{% endif %}" class="w-10 h-10 rounded-xl bg-transparent border border-transparent text-zinc-500 font-bold text-xs flex items-center justify-center hover:bg-zinc-800 hover:text-zinc-200 transition-all">{{ i }}</a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+
+                                {% if orders.has_next %}
+                                    <a href="?page={{ orders.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="w-10 h-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white transition-all">
+                                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                            {% endif %}
                         {% else %}
                             <div class="py-24 text-center px-6">
                                 <div class="w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-700 mx-auto mb-6">
@@ -223,7 +258,7 @@
                     </div>
 
                     <div class="space-y-3">
-                        <button class="w-full py-4 bg-cyan-500 text-black font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-cyan-400 transition-all" style="box-shadow: 0 0 20px rgba(6,182,212,0.2)">Withdraw Funds</button>
+                        <a href="{% url 'marketplace:withdrawal_request' %}" class="block text-center w-full py-4 bg-cyan-500 text-black font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-cyan-400 transition-all font-inter" style="box-shadow: 0 0 20px rgba(6,182,212,0.2)">Withdraw Funds</a>
                         <a href="{% url 'marketplace:inbox' %}" class="block text-center w-full py-4 bg-zinc-800 border border-zinc-700 text-zinc-300 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-zinc-700 transition-all">Messages</a>
                     </div>
                 </div>

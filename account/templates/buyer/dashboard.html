@@ -73,9 +73,18 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Active Orders (Left) -->
             <div class="lg:col-span-2 space-y-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-3">Active Orders</h2>
-                    <span class="px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{{ active_tasks }} total</span>
+                <div class="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-xl font-bold text-white">Your Orders</h2>
+                        <span class="px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-[10px] font-black text-zinc-500 uppercase tracking-widest">{{ orders.paginator.count }} total</span>
+                    </div>
+                    
+                    <!-- Search Form -->
+                    <form method="GET" class="w-full md:w-auto relative group">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-cyan-500 transition-colors text-xs"></i>
+                        <input type="text" name="search" value="{{ search_query }}" placeholder="Search orders or sellers..." 
+                               class="w-full md:w-80 pl-10 pr-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all placeholder-zinc-600 font-medium">
+                    </form>
                 </div>
                 
                 {% if orders %}
@@ -177,6 +186,33 @@
                         </div>
                         {% endif %}
                     {% endfor %}
+
+                    <!-- Pagination -->
+                    {% if orders.has_other_pages %}
+                    <div class="mt-12 flex items-center justify-center gap-2">
+                        {% if orders.has_previous %}
+                            <a href="?page={{ orders.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-white transition-all">
+                                <i class="fa-solid fa-chevron-left text-xs"></i>
+                            </a>
+                        {% endif %}
+                        
+                        <div class="flex items-center gap-2 bg-zinc-900/50 p-1.5 rounded-2xl border border-zinc-800/50">
+                            {% for i in orders.paginator.page_range %}
+                                {% if orders.number == i %}
+                                    <span class="w-10 h-10 rounded-xl bg-cyan-500 text-black font-black text-xs flex items-center justify-center shadow-lg shadow-cyan-500/20">{{ i }}</span>
+                                {% elif i > orders.number|add:'-3' and i < orders.number|add:'3' %}
+                                    <a href="?page={{ i }}{% if search_query %}&search={{ search_query }}{% endif %}" class="w-10 h-10 rounded-xl bg-transparent border border-transparent text-zinc-500 font-bold text-xs flex items-center justify-center hover:bg-zinc-800 hover:text-zinc-200 transition-all">{{ i }}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        {% if orders.has_next %}
+                            <a href="?page={{ orders.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-white transition-all">
+                                <i class="fa-solid fa-chevron-right text-xs"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 {% else %}
                     <div class="py-20 bg-zinc-900 rounded-[2rem] border-2 border-dashed border-zinc-800 flex flex-col items-center justify-center text-center px-6">
                         <div class="w-16 h-16 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-700 mb-6">

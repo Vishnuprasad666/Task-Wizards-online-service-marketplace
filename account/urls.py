@@ -15,9 +15,11 @@ urlpatterns = [
     path("seller/profile/edit/", SellerProfileUpdateView.as_view(), name="seller_profile_edit"),
 
     path("forgot-password/", ForgotPasswordView.as_view(), name="forgot_password"),
+    path("forgot-username/", ForgotUsernameView.as_view(), name="forgot_username"),
     path("reset-password/", ResetPasswordView.as_view(), name="reset_password"),
     path("about/", AboutView.as_view(), name="about"),
     path("how-it-works/", HowItWorksView.as_view(), name="how_it_works"),
     path("role-selection/", RoleSelectionView.as_view(), name="role_selection"),
     path("toggle-mode/", ToggleModeView.as_view(), name="toggle_mode"),
+    path("access-denied/", AccessDeniedView.as_view(), name="access_denied"),
 ]
