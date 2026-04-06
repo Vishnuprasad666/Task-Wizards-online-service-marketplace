@@ -178,9 +178,17 @@
                     {% elif user == order.buyer %}
                         {% if order.status == 'Delivered' %}
                         <div class="flex flex-col sm:flex-row gap-4">
+                            {% if order.revision_count < 2 %}
                             <button onclick="document.getElementById('revision-modal-{{ order.id }}').classList.remove('hidden')" class="flex-grow py-6 bg-zinc-800 border border-zinc-700 text-zinc-300 font-black rounded-[2rem] hover:bg-zinc-700 transition-all text-lg">
                                 Request Revision
+                                <span class="block text-xs font-medium text-zinc-500 mt-1">{{ order.revision_count }}/2 used</span>
                             </button>
+                            {% else %}
+                            <div class="flex-grow py-6 bg-zinc-900 border border-zinc-800 text-zinc-600 font-black rounded-[2rem] text-lg text-center cursor-not-allowed">
+                                Revision Limit Reached
+                                <span class="block text-xs font-medium text-zinc-700 mt-1">2/2 revisions used</span>
+                            </div>
+                            {% endif %}
                             <button onclick="document.getElementById('complete-order-{{ order.id }}').classList.remove('hidden')" class="flex-grow py-6 bg-emerald-500 text-black font-black rounded-[2rem] hover:bg-emerald-400 transition-all text-lg">
                                 Approve &amp; Review
                             </button>
@@ -191,7 +199,7 @@
                     {% if order.status == 'Pending' or order.status == 'Paid' %}
                     <div class="mt-4">
                         <button onclick="document.getElementById('cancel-modal-{{ order.id }}').classList.remove('hidden')" class="w-full py-4 bg-transparent border border-rose-500/30 text-rose-500/60 font-bold rounded-2xl hover:bg-rose-500 hover:text-white transition-all text-sm uppercase tracking-widest">
-                            Cancel Order
+                            {% if user == order.service.seller and order.status == 'Paid' %}Reject Order{% else %}Cancel Order{% endif %}
                         </button>
                     </div>
                     {% endif %}
@@ -335,18 +343,24 @@
             <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
         <div class="text-center">
-            <h3 class="text-xl font-black text-white">Cancel Order?</h3>
-            <p class="text-sm text-zinc-500 mt-2">Are you sure you want to cancel this order? This action cannot be undone.</p>
+            <h3 class="text-xl font-black text-white">{% if user == order.service.seller and order.status == 'Paid' %}Reject this Order?{% else %}Cancel this Order?{% endif %}</h3>
+            <p class="text-sm text-zinc-500 mt-2">
+                {% if user == order.service.seller and order.status == 'Paid' %}
+                    Are you sure you want to decline this project? The client will be notified and a refund will be processed.
+                {% else %}
+                    Are you sure you want to cancel this order? This action cannot be undone.
+                {% endif %}
+            </p>
             {% if order.status == 'Paid' %}
             <div class="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-                <p class="text-[11px] font-bold text-amber-400">Since this order is already paid, a refund request will be sent to the administrator.</p>
+                <p class="text-[11px] font-bold text-amber-400">A refund request will be sent to the administrator automatically.</p>
             </div>
             {% endif %}
         </div>
         <form action="{% url 'marketplace:order_cancel' order.pk %}" method="POST" class="flex gap-4">
             {% csrf_token %}
             <button type="button" onclick="document.getElementById('cancel-modal-{{ order.id }}').classList.add('hidden')" class="flex-grow py-4 text-sm font-bold text-zinc-500 hover:text-zinc-300">Keep Order</button>
-            <button type="submit" class="flex-grow py-4 px-8 bg-rose-500 text-white font-black rounded-2xl hover:bg-rose-600 transition-all">Yes, Cancel</button>
+            <button type="submit" class="flex-grow py-4 px-8 bg-rose-500 text-white font-black rounded-2xl hover:bg-rose-600 transition-all">{% if user == order.service.seller and order.status == 'Paid' %}Yes, Reject{% else %}Yes, Cancel{% endif %}</button>
         </form>
     </div>
 </div>
