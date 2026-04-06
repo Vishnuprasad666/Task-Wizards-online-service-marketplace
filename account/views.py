@@ -204,7 +204,8 @@ class BuyerDashboardView(LoginRequiredMixin, BuyerRequiredMixin, TemplateView):
         # Recalculate stats based on full queryset (not just page)
         context["active_tasks"] = orders_qs.filter(status__in=["Paid", "In Progress", "Delivered", "Revision Requested"]).count()
         context["completed_tasks"] = orders_qs.filter(status="Completed").count()
-        context["total_spent"] = sum(order.amount for order in orders_qs.exclude(status="Pending"))
+        context["cancelled_tasks"] = orders_qs.filter(status="Cancelled").count()
+        context["total_spent"] = sum(order.amount for order in orders_qs.exclude(status__in=["Pending", "Cancelled"]))
         return context
     
 class SellerDashboardView(LoginRequiredMixin, SellerRequiredMixin, TemplateView):
@@ -240,6 +241,7 @@ class SellerDashboardView(LoginRequiredMixin, SellerRequiredMixin, TemplateView)
         context["total_earnings"] = sum(order.amount for order in orders_qs.filter(status="Completed"))
         context["active_tasks"] = orders_qs.filter(status__in=["Paid", "In Progress", "Delivered", "Revision Requested"]).count()
         context["completed_tasks"] = orders_qs.filter(status="Completed").count()
+        context["cancelled_tasks"] = orders_qs.filter(status="Cancelled").count()
         return context
     
 class BuyerProfileUpdateView(LoginRequiredMixin, BuyerRequiredMixin, UpdateView):

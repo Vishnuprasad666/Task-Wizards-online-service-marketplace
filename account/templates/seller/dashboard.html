@@ -71,43 +71,52 @@
 
                     <div class="p-0">
                         {% if orders %}
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left">
-                                    <thead class="bg-zinc-800/50 text-[10px] font-black uppercase tracking-widest text-zinc-600">
+                            <div class="overflow-hidden">
+                                <table class="w-full text-left table-fixed">
+                                    <colgroup>
+                                        <col style="width: 40%">
+                                        <col style="width: 22%">
+                                        <col style="width: 15%">
+                                        <col style="width: 23%">
+                                    </colgroup>
+                                    <thead class="bg-zinc-800/50 text-[9px] font-black uppercase tracking-widest text-zinc-600">
                                         <tr>
-                                            <th class="px-8 py-5">Client / Gig</th>
-                                            <th class="px-6 py-5">Status</th>
-                                            <th class="px-6 py-5">Amount</th>
-                                            <th class="px-8 py-5 text-right">Action</th>
+                                            <th class="px-4 py-4">Client / Gig</th>
+                                            <th class="px-3 py-4">Status</th>
+                                            <th class="px-3 py-4">Amount</th>
+                                            <th class="px-3 py-4 text-right">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-zinc-800">
                                         {% for order in orders %}
-                                            {% if order.status in 'Paid,In Progress,Delivered,Revision Requested' %}
+                                            {% if order.status in 'Paid,In Progress,Delivered,Revision Requested,Cancelled' %}
                                             <tr class="group hover:bg-zinc-800/30 transition-colors">
-                                                <td class="px-8 py-6">
-                                                    <div class="flex items-center gap-4">
-                                                        <div class="w-10 h-10 rounded-xl bg-zinc-800 flex-shrink-0 overflow-hidden border border-zinc-700">
+                                                <td class="px-4 py-4">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-9 h-9 rounded-xl bg-zinc-800 flex-shrink-0 overflow-hidden border border-zinc-700">
                                                             <img src="{{ order.service.image.url }}" class="w-full h-full object-cover">
                                                         </div>
                                                         <div class="min-w-0">
                                                             <a href="{% url 'marketplace:order_detail' order.pk %}" class="hover:text-cyan-400 transition-all">
-                                                                <p class="text-sm font-bold text-zinc-200 truncate">{{ order.service.title }}</p>
+                                                                <p class="text-sm font-bold text-zinc-200 truncate">{{ order.service.title|truncatechars:30 }}</p>
                                                             </a>
-                                                            <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-tight">{{ order.buyer.username }}</p>
+                                                            <p class="text-[9px] text-zinc-600 font-bold uppercase tracking-tight truncate">{{ order.buyer.username }}</p>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td class="px-6 py-4">
-                                                    <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest {% if order.status == 'Revision Requested' %}bg-rose-500/10 text-rose-400 border border-rose-500/20{% else %}bg-blue-500/10 text-blue-400 border border-blue-500/20{% endif %}">
+                                                <td class="px-3 py-4">
+                                                    <span class="inline-block px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wide 
+                                                        {% if order.status == 'Revision Requested' %}bg-rose-500/10 text-rose-400 border border-rose-500/20
+                                                        {% elif order.status == 'Cancelled' %}bg-zinc-800 text-zinc-600 border border-zinc-700
+                                                        {% else %}bg-blue-500/10 text-blue-400 border border-blue-500/20{% endif %}">
                                                         {{ order.status }}
                                                     </span>
                                                 </td>
-                                                <td class="px-6 py-6 font-bold text-white">₹{{ order.amount }}</td>
-                                                <td class="px-8 py-6 text-right">
-                                                    <div class="flex items-center justify-end gap-2">
-                                                        <a href="{% url 'marketplace:order_detail' order.pk %}" class="px-4 py-2 bg-zinc-800 text-zinc-300 font-bold rounded-lg text-[10px] uppercase tracking-widest hover:bg-zinc-700 hover:text-white transition-all border border-zinc-700">Details</a>
-                                                        <a href="{% url 'marketplace:chat_detail' order.buyer.id %}" class="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-600 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all">
+                                                <td class="px-3 py-4 font-bold text-white text-xs">₹{{ order.amount }}</td>
+                                                <td class="px-3 py-4 text-right">
+                                                    <div class="flex items-center justify-end gap-1.5">
+                                                        <a href="{% url 'marketplace:order_detail' order.pk %}" class="px-2.5 py-1.5 bg-zinc-800 text-zinc-300 font-bold rounded-lg text-[9px] uppercase tracking-widest hover:bg-zinc-700 hover:text-white transition-all border border-zinc-700">Details</a>
+                                                        <a href="{% url 'marketplace:chat_detail' order.buyer.id %}" class="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all">
                                                             <i class="fa-solid fa-message text-xs"></i>
                                                         </a>
                                                     </div>
@@ -168,41 +177,47 @@
 
                     <div class="p-0">
                         {% if completed_tasks > 0 %}
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left">
-                                    <thead class="bg-zinc-800/50 text-[10px] font-black uppercase tracking-widest text-zinc-600">
+                            <div class="overflow-hidden">
+                                <table class="w-full text-left table-fixed">
+                                    <colgroup>
+                                        <col style="width: 40%">
+                                        <col style="width: 22%">
+                                        <col style="width: 15%">
+                                        <col style="width: 23%">
+                                    </colgroup>
+                                    <thead class="bg-zinc-800/50 text-[9px] font-black uppercase tracking-widest text-zinc-600">
                                         <tr>
-                                            <th class="px-8 py-5">Client / Gig</th>
-                                            <th class="px-6 py-5">Status</th>
-                                            <th class="px-6 py-5">Amount</th>
-                                            <th class="px-8 py-5 text-right">Action</th>
+                                            <th class="px-4 py-4">Client / Gig</th>
+                                            <th class="px-3 py-4">Status</th>
+                                            <th class="px-3 py-4">Amount</th>
+                                            <th class="px-3 py-4 text-right">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-zinc-800">
                                         {% for order in orders %}
                                             {% if order.status == 'Completed' %}
                                             <tr class="group hover:bg-zinc-800/30 transition-colors">
-                                                <td class="px-8 py-6">
-                                                    <div class="flex items-center gap-4">
-                                                        <div class="w-10 h-10 rounded-xl bg-zinc-800 flex-shrink-0 overflow-hidden border border-zinc-700">
+                                                <td class="px-4 py-4">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-9 h-9 rounded-xl bg-zinc-800 flex-shrink-0 overflow-hidden border border-zinc-700">
                                                             <img src="{{ order.service.image.url }}" class="w-full h-full object-cover">
                                                         </div>
                                                         <div class="min-w-0">
                                                             <a href="{% url 'marketplace:order_detail' order.pk %}" class="hover:text-cyan-400">
-                                                                <p class="text-sm font-bold text-zinc-200 truncate">{{ order.service.title }}</p>
+                                                                <p class="text-sm font-bold text-zinc-200 truncate">{{ order.service.title|truncatechars:30 }}</p>
                                                             </a>
-                                                            <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-tight">{{ order.buyer.username }}</p>
+                                                            <p class="text-[9px] text-zinc-600 font-bold uppercase tracking-tight truncate">{{ order.buyer.username }}</p>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td class="px-6 py-4">
-                                                    <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                <td class="px-3 py-4">
+                                                    <span class="inline-block px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wide bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                                                         Completed
                                                     </span>
                                                 </td>
-                                                <td class="px-6 py-6 font-bold text-white">₹{{ order.amount }}</td>
-                                                <td class="px-8 py-6 text-right">
-                                                    <a href="{% url 'marketplace:order_detail' order.pk %}" class="px-4 py-2 bg-zinc-800 text-zinc-300 font-bold rounded-lg text-[10px] uppercase tracking-widest hover:bg-zinc-700 hover:text-white transition-all border border-zinc-700">Summary</a>
+                                                <td class="px-3 py-4 font-bold text-white text-xs">₹{{ order.amount }}</td>
+                                                <td class="px-3 py-4 text-right">
+                                                    <a href="{% url 'marketplace:order_detail' order.pk %}" class="px-2.5 py-1.5 bg-zinc-800 text-zinc-300 font-bold rounded-lg text-[9px] uppercase tracking-widest hover:bg-zinc-700 hover:text-white transition-all border border-zinc-700">Summary</a>
                                                 </td>
                                             </tr>
                                             {% endif %}

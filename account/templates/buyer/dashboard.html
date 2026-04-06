@@ -89,7 +89,7 @@
                 
                 {% if orders %}
                     {% for order in orders %}
-                        {% if order.status in 'Paid,In Progress,Delivered,Revision Requested' %}
+                        {% if order.status in 'Paid,In Progress,Delivered,Revision Requested,Cancelled' %}
                         <div class="bg-zinc-900 rounded-[2rem] border border-zinc-800 overflow-hidden hover:border-zinc-600 transition-all">
                             <div class="p-6 flex flex-col md:flex-row gap-6">
                                 <div class="w-full md:w-40 aspect-[4/3] rounded-2xl overflow-hidden flex-shrink-0 bg-zinc-800">
@@ -99,7 +99,7 @@
                                     <div class="flex justify-between items-start">
                                         <div>
                                             <a href="{% url 'marketplace:order_detail' order.pk %}" class="hover:text-cyan-400 transition-colors">
-                                                <h3 class="text-lg font-bold text-zinc-200 leading-tight mb-1">{{ order.service.title }}</h3>
+                                                <h3 class="text-lg font-bold text-zinc-200 leading-tight mb-1">{{ order.service.title|truncatechars:60 }}</h3>
                                             </a>
                                             <div class="flex items-center gap-3 text-[10px] font-bold text-zinc-600 uppercase tracking-tight">
                                                 <span class="flex items-center gap-1"><i class="fa-solid fa-user-tie text-[8px]"></i> {{ order.service.seller.username }}</span>
@@ -112,6 +112,7 @@
                                                 {% if order.status == 'Paid' %}bg-blue-500/10 text-blue-400 border border-blue-500/20
                                                 {% elif order.status == 'Delivered' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
                                                 {% elif order.status == 'Revision Requested' %}bg-rose-500/10 text-rose-400 border border-rose-500/20
+                                                {% elif order.status == 'Cancelled' %}bg-zinc-800 text-zinc-500 border border-zinc-700
                                                 {% else %}bg-zinc-800 text-zinc-500 border border-zinc-700{% endif %}">
                                                 {{ order.status }}
                                             </span>
@@ -247,16 +248,20 @@
                     </div>
                     <div class="divide-y divide-zinc-800">
                         {% for order in orders %}
-                            {% if order.status == 'Completed' %}
+                            {% if order.status == 'Completed' or order.status == 'Cancelled' %}
                             <a href="{% url 'marketplace:order_detail' order.pk %}" class="p-4 flex items-center gap-4 hover:bg-zinc-800/50 transition-colors">
                                 <div class="w-10 h-10 rounded-xl bg-zinc-800 flex-shrink-0 overflow-hidden border border-zinc-700">
                                      <img src="{{ order.service.image.url }}" class="w-full h-full object-cover">
                                 </div>
                                 <div class="flex-grow min-w-0">
-                                    <h5 class="text-sm font-bold text-zinc-300 truncate">{{ order.service.title }}</h5>
+                                    <h5 class="text-sm font-bold text-zinc-300 truncate">{{ order.service.title|truncatechars:35 }}</h5>
                                     <p class="text-[10px] font-medium text-zinc-600 uppercase tracking-tight">{{ order.created_at|date:"M d" }} • ₹{{ order.amount }}</p>
                                 </div>
+                                {% if order.status == 'Completed' %}
                                 <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
+                                {% else %}
+                                <i class="fa-solid fa-circle-xmark text-zinc-600 text-xs"></i>
+                                {% endif %}
                             </a>
                             {% endif %}
                         {% empty %}

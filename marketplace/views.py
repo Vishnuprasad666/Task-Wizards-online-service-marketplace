@@ -12,7 +12,7 @@ from django.db.models import Q, Count
 from django.contrib.auth import get_user_model
 
 from marketplace.models import Service, Order, Category, Message, Review, Favourite, Notification, send_notification, WithdrawalRequest
-from marketplace.forms import ServiceForm
+from marketplace.forms import ServiceForm, WithdrawalRequestForm
 from account.views import BuyerRequiredMixin, SellerRequiredMixin
 
 User = get_user_model()
@@ -33,7 +33,12 @@ class ServiceListView(ListView):
         if category_id:
             queryset = queryset.filter(category_id=category_id)
         if search_query:
-            queryset = queryset.filter(Q(title__icontains=search_query) | Q(description__icontains=search_query))
+            # Multi-word search: split by space and ensure all words are present
+            words = search_query.split()
+            q_objects = Q()
+            for word in words:
+                q_objects &= (Q(title__icontains=word) | Q(description__icontains=word))
+            queryset = queryset.filter(q_objects)
             
         min_price = self.request.GET.get("min_price")
         max_price = self.request.GET.get("max_price")
@@ -161,7 +166,7 @@ class PurchaseServiceView(LoginRequiredMixin, BuyerRequiredMixin, View):
                 "razorpay_key_id": settings.RAZORPAY_KEY_ID,
                 "amount": amount,
                 "currency": "INR",
-                "payment_callback_url": reverse_lazy("marketplace:payment_callback")
+                "callback_url": request.build_absolute_uri(reverse_lazy("marketplace:payment_callback"))
             }
             return render(request, "marketplace/payment_checkout.html", context)
             
@@ -270,8 +275,15 @@ class OrderCompleteView(LoginRequiredMixin, BuyerRequiredMixin, View):
         return redirect("marketplace:order_detail", pk=pk)
 
 class OrderRevisionView(LoginRequiredMixin, BuyerRequiredMixin, View):
+    MAX_REVISIONS = 2
+
     def post(self, request, pk):
         order = get_object_or_404(Order, pk=pk, buyer=request.user, status="Delivered")
+
+        if order.revision_count >= self.MAX_REVISIONS:
+            messages.error(request, f"You have reached the maximum revision limit ({self.MAX_REVISIONS} revisions) for this order. Please accept the delivery or contact the seller via chat.")
+            return redirect("marketplace:order_detail", pk=pk)
+
         revision_note = request.POST.get("revision_note")
         if revision_note:
             order.status = "Revision Requested"
@@ -282,11 +294,11 @@ class OrderRevisionView(LoginRequiredMixin, BuyerRequiredMixin, View):
             # Notify seller about revision
             send_notification(
                 user=order.service.seller,
-                message=f"Buyer requested a revision for '{order.service.title}'.",
+                message=f"Buyer requested revision #{order.revision_count} for '{order.service.title}'.",
                 link=reverse_lazy("marketplace:order_detail", kwargs={"pk": order.pk})
             )
             
-            messages.success(request, "Revision requested successfully.")
+            messages.success(request, f"Revision #{order.revision_count} requested. ({self.MAX_REVISIONS - order.revision_count} remaining)")
         else:
             messages.error(request, "Please provide a revision note.")
         return redirect("marketplace:order_detail", pk=pk)
@@ -329,6 +341,10 @@ class InboxView(LoginRequiredMixin, TemplateView):
 
 class ChatDetailView(LoginRequiredMixin, View):
     def get(self, request, user_id):
+        if request.user.id == user_id:
+            messages.warning(request, "You cannot message yourself.")
+            return redirect("marketplace:inbox")
+            
         other_user = get_object_or_404(User, id=user_id)
         messages_list = Message.objects.filter(
             (Q(sender=request.user) & Q(receiver=other_user)) |
@@ -352,6 +368,9 @@ class ChatDetailView(LoginRequiredMixin, View):
         })
 
     def post(self, request, user_id):
+        if request.user.id == user_id:
+            return HttpResponseBadRequest("Cannot message yourself")
+            
         other_user = get_object_or_404(User, id=user_id)
         content = request.POST.get("content")
         if content:
@@ -418,16 +437,18 @@ class UnreadNotificationCountView(LoginRequiredMixin, View):
 
 class WithdrawalRequestView(LoginRequiredMixin, SellerRequiredMixin, CreateView):
     model = WithdrawalRequest
-    fields = ['amount']
+    form_class = WithdrawalRequestForm
     template_name = "marketplace/withdrawal_form.html"
     success_url = reverse_lazy("seller_dashboard")
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
         form.instance.user = self.request.user
-        # Check if seller has enough completed order earnings (optional but good)
-        from account.views import SellerDashboardView
-        # Simplified: Just create the request, admin will verify
-        messages.success(self.request, "Withdrawal request submitted for admin review.")
+        messages.success(self.request, f"Withdrawal request for ₹{form.cleaned_data['amount']} submitted for admin review.")
         return super().form_valid(form)
 
 class OrderCancelView(LoginRequiredMixin, View):

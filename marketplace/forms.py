@@ -1,5 +1,6 @@
 from django import forms
-from marketplace.models import Service
+from marketplace.models import Service, WithdrawalRequest
+from django.db.models import Sum
 
 class ServiceForm(forms.ModelForm):
     class Meta:
@@ -26,3 +27,38 @@ class ServiceForm(forms.ModelForm):
             if ext not in [".jpg", ".jpeg", ".png", ".webp"]:
                 raise forms.ValidationError("Unsupported image format. Please use JPG, PNG, or WEBP.")
         return image
+
+class WithdrawalRequestForm(forms.ModelForm):
+    class Meta:
+        model = WithdrawalRequest
+        fields = ['amount']
+        widgets = {
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Amount to withdraw (₹)'})
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if self.user:
+            # Calculate total earnings from completed orders
+            from marketplace.models import Order
+            total_earned = Order.objects.filter(
+                service__seller=self.user, 
+                status="Completed"
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            
+            # Calculate already withdrawn or pending amounts
+            total_withdrawn = WithdrawalRequest.objects.filter(
+                user=self.user
+            ).exclude(status="Rejected").aggregate(total=Sum('amount'))['total'] or 0
+            
+            available_balance = float(total_earned) - float(total_withdrawn)
+            
+            if float(amount) > available_balance:
+                raise forms.ValidationError(f"Insufficient balance. Your available balance is ₹{available_balance:.2f}")
+            if float(amount) <= 0:
+                raise forms.ValidationError("Withdrawal amount must be greater than zero.")
+        return amount
