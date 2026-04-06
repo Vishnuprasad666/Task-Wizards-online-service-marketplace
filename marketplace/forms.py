@@ -13,3 +13,16 @@ class ServiceForm(forms.ModelForm):
             "delivery_time": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Expected delivery (Days)"}),
             "image": forms.FileInput(attrs={"class": "form-control"}),
         }
+    def clean_image(self):
+        image = self.cleaned_data.get("image")
+        if image:
+            # Check file size (e.g., 2MB)
+            if image.size > 2 * 1024 * 1024:
+                raise forms.ValidationError("Image file size should not exceed 2MB.")
+            
+            # Check file extension
+            import os
+            ext = os.path.splitext(image.name)[1].lower()
+            if ext not in [".jpg", ".jpeg", ".png", ".webp"]:
+                raise forms.ValidationError("Unsupported image format. Please use JPG, PNG, or WEBP.")
+        return image

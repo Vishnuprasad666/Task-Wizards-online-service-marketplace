@@ -15,10 +15,13 @@ urlpatterns = [
     path("my-services/add/", views.ServiceCreateView.as_view(), name="service_create"),
     path("my-services/<int:pk>/edit/", views.ServiceUpdateView.as_view(), name="service_update"),
     path("my-services/<int:pk>/delete/", views.ServiceDeleteView.as_view(), name="service_delete"),
+    path("withdraw/", views.WithdrawalRequestView.as_view(), name="withdrawal_request"),
     
     # Order Fulfillment
     path("order/<int:pk>/deliver/", views.OrderDeliverView.as_view(), name="order_deliver"),
     path("order/<int:pk>/complete/", views.OrderCompleteView.as_view(), name="order_complete"),
+    path("order/<int:pk>/cancel/", views.OrderCancelView.as_view(), name="order_cancel"),
+    path("order/<int:pk>/reject/", views.OrderRejectView.as_view(), name="order_reject"),
     
     # Messaging
     path("inbox/", views.InboxView.as_view(), name="inbox"),

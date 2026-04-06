@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Access Denied - Task Wizards{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center px-4">
+    <div class="max-w-md w-full bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-3xl p-10 text-center shadow-2xl relative overflow-hidden group">
+        <!-- Animated Background Glow -->
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-indigo-600/20 blur-[80px] rounded-full group-hover:bg-indigo-600/30 transition-all duration-700"></div>
+        <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-600/20 blur-[80px] rounded-full group-hover:bg-purple-600/30 transition-all duration-700"></div>
+
+        <!-- Icon -->
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 mb-6 shadow-lg shadow-indigo-500/20 transform group-hover:scale-110 transition-transform duration-500">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m0 0v2m0-2h2m-2 0h-2m8-3V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+        </div>
+
+        <h1 class="text-3xl font-black text-white mb-3 tracking-tight">Access Denied</h1>
+        <p class="text-slate-400 mb-8 leading-relaxed">
+            You need a <strong>{{ required_role|default:"different" }}</strong> account to access this page. Your current profile doesn't have the necessary permissions.
+        </p>
+
+        <div class="space-y-4">
+            <a href="{% url 'role_selection' %}" class="block w-full py-4 px-6 rounded-2xl bg-white text-slate-950 font-bold hover:bg-slate-200 transition-all duration-300 transform active:scale-[0.98]">
+                Upgrade Account
+            </a>
+            <a href="javascript:history.back()" class="block w-full py-4 px-6 rounded-2xl bg-white/5 text-white font-semibold border border-white/10 hover:bg-white/10 transition-all duration-300">
+                Go Back
+            </a>
+        </div>
+
+        <p class="mt-8 text-xs text-slate-500 uppercase tracking-[0.2em] font-medium">Security Error Ref: 403-AUTH</p>
+    </div>
+</div>
+{% endblock %}

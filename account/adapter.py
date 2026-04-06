@@ -8,5 +8,7 @@ class RoleSelectionAdapter(DefaultSocialAccountAdapter):
         path = super().get_login_redirect_url(request)
         user = request.user
         if user.is_authenticated and not user.is_buyer and not user.is_seller:
+            user.is_verified = True  # Social users skip OTP but need a role
+            user.save()
             return reverse("role_selection")
         return path

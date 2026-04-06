@@ -47,6 +47,12 @@ class BuyerProfile(models.Model):
     website = models.URLField(blank=True)
     address = models.TextField(null=True, blank=True)
     photo = models.ImageField(upload_to="buyer_profiles/",default="buyer_profiles/default.png")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Buyer Profile"
+        verbose_name_plural = "Buyer Profiles"
 
     def __str__(self):
         return f"Buyer: {self.owner.username}"
@@ -67,10 +73,17 @@ class SellerProfile(models.Model):
     photo = models.ImageField(upload_to="seller_profiles/",default="seller_profiles/default.png")
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=5.00)
     orders_completed = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     @property
     def rank_score(self):
         # Formula from guide: score = rating * 0.4 + orders_completed * 0.6
         return float(self.rating) * 0.4 + self.orders_completed * 0.6
+
+    class Meta:
+        verbose_name = "Seller Profile"
+        verbose_name_plural = "Seller Profiles"
 
     def __str__(self):
         return f"Seller: {self.owner.username}"

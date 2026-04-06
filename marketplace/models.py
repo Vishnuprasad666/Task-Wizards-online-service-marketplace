@@ -4,6 +4,9 @@ from django.conf import settings
 class Category(models.Model):
     name = models.CharField(max_length=100)
 
+    class Meta:
+        verbose_name_plural = "Categories"
+
     def __str__(self):
         return self.name
 
@@ -17,6 +20,10 @@ class Service(models.Model):
     image = models.ImageField(upload_to="services/")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Service"
+        verbose_name_plural = "Services"
 
     def __str__(self):
         return self.title
@@ -42,6 +49,8 @@ class Order(models.Model):
         ("Delivered", "Delivered"),
         ("Revision Requested", "Revision Requested"),
         ("Completed", "Completed"),
+        ("Cancelled", "Cancelled"),
+        ("Refunded", "Refunded"),
         ("Failed", "Failed"),
     )
 
@@ -83,6 +92,10 @@ class Order(models.Model):
     def __str__(self):
         return f"Order {self.id} - {self.service.title}"
 
+    class Meta:
+        verbose_name = "Order"
+        verbose_name_plural = "Orders"
+
 class Review(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name="review")
     rating = models.PositiveIntegerField(choices=[(i, str(i)) for i in range(1, 6)])
@@ -91,6 +104,11 @@ class Review(models.Model):
 
     def __str__(self):
         return f"Review for Order {self.order.id}"
+
+    class Meta:
+        verbose_name = "Review"
+        verbose_name_plural = "Reviews"
+        ordering = ["-created_at"]
 
 class Message(models.Model):
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sent_messages")
@@ -115,6 +133,10 @@ class Favourite(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.service.title}"
+
+    class Meta:
+        verbose_name = "Favourite"
+        verbose_name_plural = "Favourites"
 
 # --- SIGNALS FOR AUTO-UPDATES ---
 from django.db.models.signals import post_save
@@ -206,3 +228,23 @@ def send_notification(user, message, link=""):
         args=(user, message, link)
     )
     email_thread.start()
+
+class WithdrawalRequest(models.Model):
+    STATUS_CHOICES = (
+        ("Pending", "Pending"),
+        ("Completed", "Completed"),
+        ("Rejected", "Rejected"),
+    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="withdrawal_requests")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Withdrawal Request"
+        verbose_name_plural = "Withdrawal Requests"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Withdrawal request of {self.amount} by {self.user.username}"

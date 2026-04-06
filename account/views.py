@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from django.db.models import Q
 
 from account.models import User, BuyerProfile, SellerProfile
 from account.forms import UserForm, LoginForm, BuyerProfileForm, SellerProfileForm, OTPForm, ForgotPasswordForm, ResetPasswordForm, UserUpdateForm
@@ -14,13 +15,13 @@ from marketplace.models import Category, Service
 class BuyerRequiredMixin:
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_buyer:
-            return redirect("role_selection")
+            return redirect("access_denied")
         return super().dispatch(request, *args, **kwargs)
 
 class SellerRequiredMixin:
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_seller:
-            return redirect("role_selection")
+            return redirect("access_denied")
         return super().dispatch(request, *args, **kwargs)
 
 class LandingPageView(View):
@@ -78,7 +79,15 @@ class VerifyOTPView(FormView):
             user.is_verified = True
             user.otp=None
             user.save()
+            
+            # Ensure profiles exist if flags were already somehow set
+            if user.is_buyer:
+                BuyerProfile.objects.get_or_create(owner=user)
+            if user.is_seller:
+                SellerProfile.objects.get_or_create(owner=user)
+                
             del self.request.session["verify_user"]
+            messages.success(self.request, "Account verified successfully! Please login.")
             return super().form_valid(form)
         return redirect("verify_otp")
     
@@ -170,12 +179,32 @@ class BuyerDashboardView(LoginRequiredMixin, BuyerRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         from marketplace.models import Order
+        from django.core.paginator import Paginator
         context = super().get_context_data(**kwargs)
-        context["orders"] = Order.objects.filter(buyer=self.request.user).order_by("-created_at")
-        context["active_tasks"] = context["orders"].filter(status__in=["Paid", "In Progress", "Delivered", "Revision Requested"]).count()
-        # count for total completed (not in active anymore) is handled in completed_tasks
-        context["completed_tasks"] = context["orders"].filter(status="Completed").count()
-        context["total_spent"] = sum(order.amount for order in context["orders"].exclude(status="Pending"))
+        
+        # Base Queryset
+        orders_qs = Order.objects.filter(buyer=self.request.user).order_by("-created_at")
+        
+        # Search Filtering
+        search_query = self.request.GET.get('search', '')
+        if search_query:
+            orders_qs = orders_qs.filter(
+                Q(service__title__icontains=search_query) | 
+                Q(service__seller__username__icontains=search_query)
+            )
+        
+        # Pagination
+        paginator = Paginator(orders_qs, 10)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        context["orders"] = page_obj
+        context["search_query"] = search_query
+        
+        # Recalculate stats based on full queryset (not just page)
+        context["active_tasks"] = orders_qs.filter(status__in=["Paid", "In Progress", "Delivered", "Revision Requested"]).count()
+        context["completed_tasks"] = orders_qs.filter(status="Completed").count()
+        context["total_spent"] = sum(order.amount for order in orders_qs.exclude(status="Pending"))
         return context
     
 class SellerDashboardView(LoginRequiredMixin, SellerRequiredMixin, TemplateView):
@@ -183,12 +212,34 @@ class SellerDashboardView(LoginRequiredMixin, SellerRequiredMixin, TemplateView)
 
     def get_context_data(self, **kwargs):
         from marketplace.models import Service, Order
+        from django.core.paginator import Paginator
         context = super().get_context_data(**kwargs)
+        
         context["services"] = Service.objects.filter(seller=self.request.user)
-        context["orders"] = Order.objects.filter(service__seller=self.request.user).order_by("-created_at")
-        context["total_earnings"] = sum(order.amount for order in context["orders"].filter(status="Completed"))
-        context["active_tasks"] = context["orders"].filter(status__in=["Paid", "In Progress", "Delivered", "Revision Requested"]).count()
-        context["completed_tasks"] = context["orders"].filter(status="Completed").count()
+        
+        # Base Queryset
+        orders_qs = Order.objects.filter(service__seller=self.request.user).order_by("-created_at")
+        
+        # Search Filtering
+        search_query = self.request.GET.get('search', '')
+        if search_query:
+            orders_qs = orders_qs.filter(
+                Q(service__title__icontains=search_query) | 
+                Q(buyer__username__icontains=search_query)
+            )
+            
+        # Pagination
+        paginator = Paginator(orders_qs, 10)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        context["orders"] = page_obj
+        context["search_query"] = search_query
+        
+        # Stats based on full queryset
+        context["total_earnings"] = sum(order.amount for order in orders_qs.filter(status="Completed"))
+        context["active_tasks"] = orders_qs.filter(status__in=["Paid", "In Progress", "Delivered", "Revision Requested"]).count()
+        context["completed_tasks"] = orders_qs.filter(status="Completed").count()
         return context
     
 class BuyerProfileUpdateView(LoginRequiredMixin, BuyerRequiredMixin, UpdateView):
@@ -292,3 +343,53 @@ class ToggleModeView(LoginRequiredMixin, View):
             request.session['user_mode'] = 'seller'
             return redirect('seller_dashboard')
         return redirect('landing_page')
+
+class AccessDeniedView(TemplateView):
+    template_name = "account/access_denied.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Check the referer or request path to determine which role was required
+        if 'seller' in self.request.path or 'service' in self.request.path:
+            context['required_role'] = 'Freelancer'
+        else:
+            context['required_role'] = 'Client'
+        return context
+
+class ForgotUsernameView(View):
+    def get(self, request):
+        from account.forms import ForgotPasswordForm
+        form = ForgotPasswordForm()
+        return render(request, "account/forgot_username.html", {"form": form})
+
+    def post(self, request):
+        from account.forms import ForgotPasswordForm
+        form = ForgotPasswordForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data["email"]
+            users = User.objects.filter(email=email)
+            if users.exists():
+                usernames = [u.username for u in users]
+                username_list = ", ".join(usernames)
+                
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                subject = "Task Wizards: Your Username Recovery"
+                message = f"Hello,\n\nThe username(s) associated with this email address are: {username_list}\n\nYou can login here: {request.build_absolute_uri('/')}"
+                
+                try:
+                    send_mail(
+                        subject,
+                        message,
+                        settings.EMAIL_HOST_USER,
+                        [email],
+                        fail_silently=False,
+                    )
+                    messages.success(request, "If an account exists with that email, we've sent the username(s).")
+                except Exception as e:
+                    messages.error(request, "Failed to send email. Please try again later.")
+            else:
+                messages.success(request, "If an account exists with that email, we've sent the username(s).")
+            return redirect("login")
+        return render(request, "account/forgot_username.html", {"form": form})

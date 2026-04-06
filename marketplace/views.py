@@ -11,7 +11,7 @@ from django.utils.decorators import method_decorator
 from django.db.models import Q, Count
 from django.contrib.auth import get_user_model
 
-from marketplace.models import Service, Order, Category, Message, Review, Favourite, Notification, send_notification
+from marketplace.models import Service, Order, Category, Message, Review, Favourite, Notification, send_notification, WithdrawalRequest
 from marketplace.forms import ServiceForm
 from account.views import BuyerRequiredMixin, SellerRequiredMixin
 
@@ -128,6 +128,17 @@ class PurchaseServiceView(LoginRequiredMixin, BuyerRequiredMixin, View):
         service = get_object_or_404(Service, pk=pk)
         buyer_note = request.POST.get("buyer_note", "")
         
+        # Audit Item 16: Prevent duplicate active orders for the same service
+        existing_active_order = Order.objects.filter(
+            buyer=request.user, 
+            service=service, 
+            status__in=["Pending", "Paid", "In Progress", "Delivered", "Revision Requested"]
+        ).exists()
+        
+        if existing_active_order:
+            messages.warning(request, f"You already have an active order for '{service.title}'. Please complete or cancel it before ordering again.")
+            return redirect("marketplace:service_detail", pk=pk)
+        
         amount = int(service.price * 100)
         data = {"amount": amount, "currency": "INR", "payment_capture": "1"}
         
@@ -150,7 +161,7 @@ class PurchaseServiceView(LoginRequiredMixin, BuyerRequiredMixin, View):
                 "razorpay_key_id": settings.RAZORPAY_KEY_ID,
                 "amount": amount,
                 "currency": "INR",
-                "callback_url": request.build_absolute_uri(reverse_lazy("marketplace:payment_callback"))
+                "payment_callback_url": reverse_lazy("marketplace:payment_callback")
             }
             return render(request, "marketplace/payment_checkout.html", context)
             
@@ -287,10 +298,10 @@ class OrderDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         # Ensure only the buyer or the seller of the order can view it
-        if self.request.session.get('user_mode') != 'seller':
-            return Order.objects.filter(buyer=self.request.user)
-        else:
-            return Order.objects.filter(service__seller=self.request.user)
+        # Fixed: Dual-role users can now see their orders regardless of session mode
+        return Order.objects.filter(
+            Q(buyer=self.request.user) | Q(service__seller=self.request.user)
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -404,3 +415,72 @@ class UnreadNotificationCountView(LoginRequiredMixin, View):
     def get(self, request):
         count = Notification.objects.filter(user=request.user, is_read=False).count()
         return JsonResponse({"unread_count": count})
+
+class WithdrawalRequestView(LoginRequiredMixin, SellerRequiredMixin, CreateView):
+    model = WithdrawalRequest
+    fields = ['amount']
+    template_name = "marketplace/withdrawal_form.html"
+    success_url = reverse_lazy("seller_dashboard")
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        # Check if seller has enough completed order earnings (optional but good)
+        from account.views import SellerDashboardView
+        # Simplified: Just create the request, admin will verify
+        messages.success(self.request, "Withdrawal request submitted for admin review.")
+        return super().form_valid(form)
+
+class OrderCancelView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        # Allow buyer to cancel if Pending or Paid
+        # Allow seller to cancel if Pending or Paid
+        order = get_object_or_404(Order, pk=pk)
+        
+        is_buyer = order.buyer == request.user
+        is_seller = order.service.seller == request.user
+        
+        if not (is_buyer or is_seller):
+            return HttpResponseBadRequest("Not authorized")
+            
+        if order.status not in ["Pending", "Paid"]:
+            messages.error(request, "This order cannot be cancelled in its current state.")
+            return redirect("marketplace:order_detail", pk=pk)
+            
+        old_status = order.status
+        order.status = "Cancelled"
+        order.save()
+        
+        # If it was Paid, notify Admin/Log that a refund is needed
+        if old_status == "Paid":
+            messages.success(request, "Order cancelled. A refund request has been initiated.")
+            send_notification(
+                user=order.buyer if is_seller else order.service.seller,
+                message=f"Order for '{order.service.title}' was cancelled. Refund is being processed.",
+                link=reverse_lazy("marketplace:order_detail", kwargs={"pk": order.pk})
+            )
+        else:
+            messages.success(request, "Order cancelled successfully.")
+            
+        return redirect("marketplace:order_detail", pk=pk)
+
+class OrderRejectView(LoginRequiredMixin, SellerRequiredMixin, View):
+    def post(self, request, pk):
+        # Allow seller to reject (cancel) if Paid
+        order = get_object_or_404(Order, pk=pk, service__seller=request.user)
+        
+        if order.status != "Paid":
+            messages.error(request, "Only newly paid orders can be rejected. For active orders, please contact the buyer.")
+            return redirect("marketplace:order_detail", pk=pk)
+            
+        order.status = "Cancelled"
+        order.save()
+        
+        # Notify buyer
+        send_notification(
+            user=order.buyer,
+            message=f"Seller has declined and cancelled your order for '{order.service.title}'. A refund has been initiated.",
+            link=reverse_lazy("marketplace:order_detail", kwargs={"pk": order.pk})
+        )
+        
+        messages.success(request, "Order rejected and cancelled. Refund initiated.")
+        return redirect("marketplace:order_detail", pk=pk)

@@ -37,6 +37,8 @@
                                 {% elif order.status == 'Delivered' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
                                 {% elif order.status == 'Revision Requested' %}bg-rose-500/10 text-rose-400 border border-rose-500/20
                                 {% elif order.status == 'Completed' %}bg-zinc-700 text-zinc-300
+                                {% elif order.status == 'Cancelled' %}bg-rose-500/10 text-rose-400 border border-rose-500/20
+                                {% elif order.status == 'Refunded' %}bg-slate-500/10 text-slate-400 border border-slate-500/20
                                 {% else %}bg-rose-500/10 text-rose-400{% endif %}">
                                 {{ order.status }}
                             </span>
@@ -186,6 +188,14 @@
                         {% endif %}
                     {% endif %}
 
+                    {% if order.status == 'Pending' or order.status == 'Paid' %}
+                    <div class="mt-4">
+                        <button onclick="document.getElementById('cancel-modal-{{ order.id }}').classList.remove('hidden')" class="w-full py-4 bg-transparent border border-rose-500/30 text-rose-500/60 font-bold rounded-2xl hover:bg-rose-500 hover:text-white transition-all text-sm uppercase tracking-widest">
+                            Cancel Order
+                        </button>
+                    </div>
+                    {% endif %}
+
                     {% if order.status == 'Completed' %}
                     <div class="text-center py-4">
                         <p class="text-emerald-400 font-bold flex items-center justify-center gap-2">
@@ -317,4 +327,27 @@
     </div>
 </div>
 {% endif %}
+
+<!-- Cancellation Modal -->
+<div id="cancel-modal-{{ order.id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6">
+        <div class="w-16 h-16 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center text-2xl mx-auto border border-rose-500/20">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div class="text-center">
+            <h3 class="text-xl font-black text-white">Cancel Order?</h3>
+            <p class="text-sm text-zinc-500 mt-2">Are you sure you want to cancel this order? This action cannot be undone.</p>
+            {% if order.status == 'Paid' %}
+            <div class="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                <p class="text-[11px] font-bold text-amber-400">Since this order is already paid, a refund request will be sent to the administrator.</p>
+            </div>
+            {% endif %}
+        </div>
+        <form action="{% url 'marketplace:order_cancel' order.pk %}" method="POST" class="flex gap-4">
+            {% csrf_token %}
+            <button type="button" onclick="document.getElementById('cancel-modal-{{ order.id }}').classList.add('hidden')" class="flex-grow py-4 text-sm font-bold text-zinc-500 hover:text-zinc-300">Keep Order</button>
+            <button type="submit" class="flex-grow py-4 px-8 bg-rose-500 text-white font-black rounded-2xl hover:bg-rose-600 transition-all">Yes, Cancel</button>
+        </form>
+    </div>
+</div>
 {% endblock %}
