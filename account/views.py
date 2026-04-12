@@ -1,13 +1,17 @@
-from django.shortcuts import render,redirect
-from django.views.generic import CreateView, FormView, UpdateView, TemplateView, View, DetailView
-from django.contrib.auth import authenticate, login, logout
-from django.urls import reverse_lazy
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-
-from account.models import User, BuyerProfile, SellerProfile
-from account.forms import UserForm, LoginForm, BuyerProfileForm, SellerProfileForm, OTPForm, ForgotPasswordForm, ResetPasswordForm, UserUpdateForm
+from django.shortcuts import redirect, render
+from django.urls import reverse, reverse_lazy
+from django.views.generic import (
+    CreateView, DetailView, FormView, TemplateView, UpdateView, View
+)
+from account.forms import (
+    BuyerProfileForm, ForgotPasswordForm, LoginForm, OTPForm,
+    ResetPasswordForm, SellerProfileForm, UserForm, UserUpdateForm
+)
+from account.models import BuyerProfile, SellerProfile, User
 from marketplace.models import Category, Service
 
 # Create your views here.
@@ -15,13 +19,13 @@ from marketplace.models import Category, Service
 class BuyerRequiredMixin:
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_buyer:
-            return redirect("access_denied")
+            return redirect(f"{reverse('access_denied')}?role=Client")
         return super().dispatch(request, *args, **kwargs)
 
 class SellerRequiredMixin:
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_seller:
-            return redirect("access_denied")
+            return redirect(f"{reverse('access_denied')}?role=Freelancer")
         return super().dispatch(request, *args, **kwargs)
 
 class LandingPageView(View):
@@ -265,8 +269,32 @@ class BuyerProfileUpdateView(LoginRequiredMixin, BuyerRequiredMixin, UpdateView)
         user_form = UserUpdateForm(request.POST, instance=request.user)
 
         if profile_form.is_valid() and user_form.is_valid():
+            email_changed = 'email' in user_form.changed_data
+            new_email = user_form.cleaned_data.get('email')
+
             user_form.save()
-            return self.form_valid(profile_form)
+            response = self.form_valid(profile_form)
+            
+            if email_changed:
+                from random import randint
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                request.session['pending_new_email'] = new_email
+                otp_number = str(randint(100000, 999999))
+                request.user.otp = otp_number
+                request.user.save(update_fields=['otp'])
+                
+                send_mail(
+                    "Your Email Update OTP",
+                    f"Your OTP for changing your email address is: {otp_number}",
+                    settings.EMAIL_HOST_USER,
+                    [new_email],
+                    fail_silently=False,
+                )
+                return redirect('verify_email_change')
+                
+            return response
         else:
             return self.render_to_response(self.get_context_data(form=profile_form, user_form=user_form))
     
@@ -291,8 +319,32 @@ class SellerProfileUpdateView(LoginRequiredMixin, SellerRequiredMixin, UpdateVie
         user_form = UserUpdateForm(request.POST, instance=request.user)
 
         if profile_form.is_valid() and user_form.is_valid():
+            email_changed = 'email' in user_form.changed_data
+            new_email = user_form.cleaned_data.get('email')
+
             user_form.save()
-            return self.form_valid(profile_form)
+            response = self.form_valid(profile_form)
+            
+            if email_changed:
+                from random import randint
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                request.session['pending_new_email'] = new_email
+                otp_number = str(randint(100000, 999999))
+                request.user.otp = otp_number
+                request.user.save(update_fields=['otp'])
+                
+                send_mail(
+                    "Your Email Update OTP",
+                    f"Your OTP for changing your email address is: {otp_number}",
+                    settings.EMAIL_HOST_USER,
+                    [new_email],
+                    fail_silently=False,
+                )
+                return redirect('verify_email_change')
+                
+            return response
         else:
             return self.render_to_response(self.get_context_data(form=profile_form, user_form=user_form))
     
@@ -346,13 +398,49 @@ class ToggleModeView(LoginRequiredMixin, View):
             return redirect('seller_dashboard')
         return redirect('landing_page')
 
+class VerifyEmailUpdateView(LoginRequiredMixin, FormView):
+    template_name = "account/verify_otp.html"
+    form_class = OTPForm
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = "Verify Email Change"
+        context['btn_text'] = "Verify New Email"
+        return context
+
+    def form_valid(self, form):
+        otp = form.cleaned_data["otp"]
+        pending_email = self.request.session.get("pending_new_email")
+        
+        if not pending_email:
+            messages.error(self.request, "No pending email change request found.")
+            mode = self.request.session.get('user_mode', 'buyer')
+            return redirect(f"{mode}_profile_edit")
+            
+        if self.request.user.otp == otp:
+            self.request.user.email = pending_email
+            self.request.user.otp = None
+            self.request.user.save()
+            
+            del self.request.session["pending_new_email"]
+            messages.success(self.request, "Email address updated successfully!")
+            
+            mode = self.request.session.get('user_mode', 'buyer')
+            return redirect(f"{mode}_dashboard")
+            
+        messages.error(self.request, "Invalid Verification Code.")
+        return self.form_invalid(form)
+
 class AccessDeniedView(TemplateView):
     template_name = "account/access_denied.html"
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Check the referer or request path to determine which role was required
-        if 'seller' in self.request.path or 'service' in self.request.path:
+        # Fetch the role requested from url param, or use fallback
+        role = self.request.GET.get('role')
+        if role:
+            context['required_role'] = role
+        elif 'seller' in self.request.path or 'service' in self.request.path:
             context['required_role'] = 'Freelancer'
         else:
             context['required_role'] = 'Client'

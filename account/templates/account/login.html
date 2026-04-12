@@ -2,6 +2,23 @@
 
 {% block title %}Login | Task Wizards{% endblock %}
 
+{% block extra_head %}
+<style>
+    .pass-toggle {
+        position: absolute;
+        right: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #52525b;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+    .pass-toggle:hover {
+        color: white;
+    }
+</style>
+{% endblock %}
+
 {% block auth_background %}
 <div class="absolute inset-0 z-0 overflow-hidden bg-zinc-950">
     <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-cyan-500/10 blur-[120px]"></div>
@@ -59,6 +76,7 @@
                             <i class="fa-solid fa-lock"></i>
                         </div>
                         {{ form.password }}
+                        <i class="fa-solid fa-eye-slash pass-toggle" onclick="togglePassword('{{ form.password.id_for_label }}', this)"></i>
                         {% if form.password.errors %}
                         <p class="text-xs text-red-500 mt-1 pl-2 font-medium">{{ form.password.errors.0 }}</p>
                         {% endif %}
@@ -109,3 +127,20 @@
     </div>
 </div>
 {% endblock content %}
+
+{% block extra_scripts %}
+<script>
+function togglePassword(inputId, icon) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    }
+}
+</script>
+{% endblock %}

@@ -1,19 +1,24 @@
 import razorpay
 from django.conf import settings
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View, TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy
 from django.contrib import messages
-from django.http import HttpResponseBadRequest, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from django.db.models import Q, Count
 from django.contrib.auth import get_user_model
-
-from marketplace.models import Service, Order, Category, Message, Review, Favourite, Notification, send_notification, WithdrawalRequest
-from marketplace.forms import ServiceForm, WithdrawalRequestForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Count, Q
+from django.http import HttpResponseBadRequest, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import (
+    CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView, View
+)
 from account.views import BuyerRequiredMixin, SellerRequiredMixin
+from marketplace.forms import ServiceForm, WithdrawalRequestForm
+from marketplace.models import (
+    Category, Favourite, Message, Notification, Order, Review,
+    Service, WithdrawalRequest, send_notification
+)
+
 
 User = get_user_model()
 razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))

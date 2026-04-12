@@ -1,5 +1,11 @@
 from django.urls import path
-from account.views import *
+from account.views import (
+    AboutView, AccessDeniedView, BuyerDashboardView, BuyerProfileUpdateView,
+    ForgotPasswordView, ForgotUsernameView, HowItWorksView, LandingPageView,
+    LoginView, LogoutView, RegisterView, ResetPasswordView, RoleSelectionView,
+    SellerDashboardView, SellerProfileUpdateView, ToggleModeView,
+    VerifyEmailUpdateView, VerifyOTPView
+)
 
 urlpatterns = [
     path("", LandingPageView.as_view(), name="home"),
@@ -13,6 +19,7 @@ urlpatterns = [
 
     path("buyer/profile/edit/", BuyerProfileUpdateView.as_view(), name="buyer_profile_edit"),
     path("seller/profile/edit/", SellerProfileUpdateView.as_view(), name="seller_profile_edit"),
+    path("verify-email-change/", VerifyEmailUpdateView.as_view(), name="verify_email_change"),
 
     path("forgot-password/", ForgotPasswordView.as_view(), name="forgot_password"),
     path("forgot-username/", ForgotUsernameView.as_view(), name="forgot_username"),

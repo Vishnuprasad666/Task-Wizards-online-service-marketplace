@@ -1,6 +1,8 @@
+import os
 from django import forms
-from marketplace.models import Service, WithdrawalRequest
 from django.db.models import Sum
+from marketplace.models import Order, Service, WithdrawalRequest
+
 
 class ServiceForm(forms.ModelForm):
     class Meta:
@@ -22,7 +24,6 @@ class ServiceForm(forms.ModelForm):
                 raise forms.ValidationError("Image file size should not exceed 2MB.")
             
             # Check file extension
-            import os
             ext = os.path.splitext(image.name)[1].lower()
             if ext not in [".jpg", ".jpeg", ".png", ".webp"]:
                 raise forms.ValidationError("Unsupported image format. Please use JPG, PNG, or WEBP.")
@@ -44,7 +45,6 @@ class WithdrawalRequestForm(forms.ModelForm):
         amount = self.cleaned_data.get('amount')
         if self.user:
             # Calculate total earnings from completed orders
-            from marketplace.models import Order
             total_earned = Order.objects.filter(
                 service__seller=self.user, 
                 status="Completed"

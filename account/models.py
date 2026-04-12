@@ -1,8 +1,10 @@
+from random import randint
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from random import randint
+from django.db.models.signals import post_save
 from django.core.mail import send_mail
-from django.conf import settings
+from django.dispatch import receiver
 
 
 class User(AbstractUser):
@@ -88,9 +90,6 @@ class SellerProfile(models.Model):
     def __str__(self):
         return f"Seller: {self.owner.username}"
     
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

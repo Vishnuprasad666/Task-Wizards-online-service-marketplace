@@ -1,5 +1,12 @@
-from django.db import models
+import threading
 from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.db import models
+from django.db.models import Avg
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -139,9 +146,6 @@ class Favourite(models.Model):
         verbose_name_plural = "Favourites"
 
 # --- SIGNALS FOR AUTO-UPDATES ---
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.db.models import Avg
 
 @receiver(post_save, sender=Order)
 def update_seller_stats_on_order(sender, instance, **kwargs):
@@ -173,11 +177,6 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user.username}: {self.message}"
-
-import threading
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 
 def send_email_in_background(user, message, link):
     """

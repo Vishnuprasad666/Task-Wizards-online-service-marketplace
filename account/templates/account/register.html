@@ -118,7 +118,6 @@
                                         'first_name': 'fa-user',
                                         'last_name': 'fa-user',
                                         'email': 'fa-envelope',
-                                        'phone': 'fa-phone',
                                         'username': 'fa-user',
                                         'password1': 'fa-lock',
                                         'password2': 'fa-lock',
@@ -174,24 +173,7 @@
 
                 document.addEventListener('DOMContentLoaded', function() {
 
-                    const phoneInput = document.querySelector('input[name="phone"]');
                     const pass1 = document.querySelector('input[name="password1"]');
-                    const pass2 = document.querySelector('input[name="password2"]');
-                    
-                    if (phoneInput) {
-                        phoneInput.addEventListener('input', function() {
-                            let val = this.value.replace(/[^0-9]/g, '');
-                            this.value = val.slice(0, 10);
-                            
-                            // Show warning/error if starting digit is invalid
-                            if (this.value.length > 0 && !['6', '7', '8', '9'].includes(this.value[0])) {
-                                this.setCustomValidity("Phone number should start with 6, 7, 8, or 9");
-                                this.reportValidity();
-                            } else {
-                                this.setCustomValidity("");
-                            }
-                        });
-                    }
 
                     if (pass1 && pass2) {
                         const validatePasswords = () => {
