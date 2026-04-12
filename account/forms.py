@@ -14,7 +14,6 @@ class UserForm(UserCreationForm):
             "first_name",
             "last_name",
             "email",
-            "phone",
             "username",
         ]
         
@@ -23,7 +22,6 @@ class UserForm(UserCreationForm):
             "first_name": forms.TextInput(attrs={"placeholder": "Enter First Name","class": "form-control"}),
             "last_name": forms.TextInput(attrs={"placeholder": "Enter Last Name","class": "form-control"}),
             "email": forms.EmailInput(attrs={"placeholder": "Enter Email","class": "form-control"}),
-            "phone": forms.TextInput(attrs={"placeholder": "Enter Phone Number","class": "form-control"}),
             "username": forms.TextInput(attrs={"placeholder": "Enter Username","class": "form-control"}),
         }
         
@@ -32,16 +30,7 @@ class UserForm(UserCreationForm):
         self.fields["password1"].widget.attrs.update({"class": "form-control","placeholder": "Enter Password"})
         self.fields["password2"].widget.attrs.update({"class": "form-control","placeholder": "Confirm Password"})
         
-    def clean_phone(self):
-        phone = self.cleaned_data.get("phone")
-        if not phone.isdigit():
-            raise forms.ValidationError("Phone number must contain only digits")
-        if len(phone) != 10:
-            raise forms.ValidationError("Phone number must be exactly 10 digits")
-        if phone[0] not in "6789":
-            raise forms.ValidationError("Phone number must start with 6, 7, 8, or 9")
-        return phone
-
+        
     def clean_email(self):
         email = self.cleaned_data.get("email")
         if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
@@ -61,6 +50,30 @@ class UserUpdateForm(forms.ModelForm):
             "linkedin_profile": forms.URLInput(attrs={"class": "form-control", "placeholder": "LinkedIn Profile URL"}),
             "twitter_profile": forms.URLInput(attrs={"class": "form-control", "placeholder": "Twitter Profile URL"}),
         }
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        
+        # If the email was changed, don't save it to the DB yet.
+        # It will be handled via OTP validation.
+        if 'email' in self.changed_data:
+            # Restore the original email on the user object
+            user.email = self.initial.get('email')
+            
+        if commit:
+            user.save()
+        return user
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get("phone")
+        if phone:
+            if not phone.isdigit():
+                raise forms.ValidationError("Phone number must contain only digits")
+            if len(phone) != 10:
+                raise forms.ValidationError("Phone number must be exactly 10 digits")
+            if phone[0] not in "6789":
+                raise forms.ValidationError("Phone number must start with 6, 7, 8, or 9")
+        return phone
     
 class OTPForm(forms.Form):
 
