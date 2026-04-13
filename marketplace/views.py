@@ -355,8 +355,6 @@ class ChatDetailView(LoginRequiredMixin, View):
             (Q(sender=request.user) & Q(receiver=other_user)) |
             (Q(sender=other_user) & Q(receiver=request.user))
         ).order_by("timestamp")
-        
-        # Mark as read
         messages_list.filter(receiver=request.user).update(is_read=True)
         
         # Add contacts for sidebar
