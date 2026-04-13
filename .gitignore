@@ -3,16 +3,23 @@
 *.pot
 *.pyc
 pycache/
+__pycache__/
 
 # Environment variables
 .env
 
 # SQLite (if used)
-# db.sqlite3
+db.sqlite3
 
 # Virtual environment
-# venv/
-# .env/
+appenv/
+venv/
+.env/
+
+# Media and Static
+media/
+staticfiles/
 
 # OS files
-# .DS_Store
+.DS_Store
+Thumbs.db

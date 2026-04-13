@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 from decouple import config
+import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,18 +23,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("SECRET_KEY")
+SECRET_KEY = config("SECRET_KEY", default="django-insecure-build-dummy-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config("DEBUG", default=False, cast=bool)
+DEBUG = config("DEBUG", default=True, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="127.0.0.1,localhost,.hf.space").split(",")
+
+# Important for deployments behind a proxy (like Hugging Face)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587 # Use 587 for TLS or 465 for SSL
-EMAIL_HOST_USER = config("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD") # Use an app-specific password, not your main password
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="dummy@example.com")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="dummy-secret") # Use an app-specific password, not your main password
 EMAIL_USE_TLS = True # Set to True for port 587
 EMAIL_USE_SSL = False # Set to True for port 465
 
@@ -53,10 +62,13 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -90,10 +102,11 @@ WSGI_APPLICATION = 'Task_Wizards.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
@@ -129,17 +142,32 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# WhiteNoise storage for production
+if not DEBUG:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 AUTH_USER_MODEL = "account_local.User"
 
+# Media files
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Cloudinary for production media storage
+if not DEBUG:
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': config('CLOUDINARY_STORAGE_NAME', default=""),
+        'API_KEY': config('CLOUDINARY_STORAGE_API_KEY', default=""),
+        'API_SECRET': config('CLOUDINARY_STORAGE_API_SECRET', default=""),
+    }
+
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "home"
+
+CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="http://127.0.0.1,https://*.hf.space").split(",")
 
 AUTHENTICATION_BACKENDS=[
     "django.contrib.auth.backends.ModelBackend",
