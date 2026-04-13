@@ -31,5 +31,7 @@ RUN python manage.py collectstatic --no-input
 # Expose the port Hugging Face expects
 EXPOSE 7860
 
-# Command to run migrations and then start the server
-CMD python manage.py migrate && gunicorn --bind 0.0.0.0:7860 Task_Wizards.wsgi:application
+# Command to run migrations, create a superuser (if it doesn't exist), and then start the server
+CMD python manage.py migrate && \
+    python manage.py createsuperuser --no-input || true && \
+    gunicorn --bind 0.0.0.0:7860 Task_Wizards.wsgi:application
