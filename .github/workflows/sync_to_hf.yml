@@ -1,7 +1,7 @@
 name: Sync to Hugging Face Hub
 on:
   push:
-    branches: [auth]
+    branches: [deployment]
   workflow_dispatch:
 
 jobs:
@@ -16,4 +16,4 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git push --force https://vishnuprasad007:$HF_TOKEN@huggingface.co/spaces/vishnuprasad007/Task-Wizards auth:main
+          git push --force https://vishnuprasad007:$HF_TOKEN@huggingface.co/spaces/vishnuprasad007/Task-Wizards deployment:main
