@@ -23,7 +23,6 @@ COPY . /app/
 
 # Create a directory for static files and set permissions
 RUN mkdir -p /app/staticfiles assets
-RUN chmod +x /app/build.sh
 
 # The build process cannot run migrations because secrets aren't available yet.
 # So we run collectstatic here and migrations in the start command.
